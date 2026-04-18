@@ -75,17 +75,22 @@ def initialize_firebase():
     try:
         if not firebase_admin._apps:
 
-            # Option 1: From file
-            if settings.FIREBASE_CREDENTIALS_PATH and os.path.exists(settings.FIREBASE_CREDENTIALS_PATH):
-                cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
-
-            # Option 2: From ENV JSON
-            elif os.getenv("FIREBASE_CONFIG"):
-                firebase_config = json.loads(os.getenv("FIREBASE_CONFIG"))
+            # Option 1: From Base64 (Production)
+            firebase_b64 = os.getenv("FIREBASE_BASE64_CERT")
+            if firebase_b64:
+                import base64
+                decoded = base64.b64decode(firebase_b64).decode('utf-8')
+                firebase_config = json.loads(decoded)
                 cred = credentials.Certificate(firebase_config)
+            
+            # Option 2: From file (Development fallback)
+            elif settings.FIREBASE_CREDENTIALS_PATH and os.path.exists(settings.FIREBASE_CREDENTIALS_PATH):
+                cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
 
             # Option 3: Default (dev only)
             else:
+                if not getattr(settings, 'DEBUG', True):
+                    raise ValueError("Missing FIREBASE_BASE64_CERT in production environment!")
                 print("⚠️ Using default Firebase credentials (dev mode)")
                 cred = credentials.ApplicationDefault()
 
