@@ -1,0 +1,36 @@
+# render.yaml
+# Blueprint to launch the Docker image to a fully managed Render Web Service
+services:
+  - type: web
+    name: versona-backend-api
+    # Run out of our custom container!
+    env: docker
+    region: singapore # Closest geographical node to India for low latency!
+    
+    # Point Render to our FastAPI folder where the Dockerfile lives
+    rootDir: src/python-backend
+    dockerContext: .
+    
+    # Health checks confirm the app booted before routing traffic
+    healthCheckPath: /health
+    
+    # Auto-Scaling
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+      targetMemoryPercent: 75
+      targetCPUPercent: 70
+    
+    # Required Environment Variables that MUST be injected into the Render Dashboard manually
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      # Pass the literal string of a Base64-encoded Firebase Service Account JSON
+      - key: FIREBASE_BASE64_CERT
+        sync: false
+      - key: WEB_CONCURRENCY
+        value: "3" # Override Gunicorn config to strictly bound memory

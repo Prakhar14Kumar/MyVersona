@@ -1,0 +1,96 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    function isVideo() {
+      return request.resource.contentType.matches('video/.*');
+    }
+    
+    function isDocument() {
+      return request.resource.contentType.matches('application/pdf') ||
+             request.resource.contentType.matches('application/msword') ||
+             request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    }
+    
+    function isValidSize(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+    
+    // Profile pictures
+    match /profile-pictures/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && isImage() && isValidSize(5);
+    }
+    
+    // Cover photos
+    match /cover-photos/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && isImage() && isValidSize(10);
+    }
+    
+    // Post media (images/videos)
+    match /posts/{userId}/{postId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && (isImage() || isVideo()) && isValidSize(100);
+      allow delete: if isOwner(userId);
+    }
+    
+    // Stories
+    match /stories/{userId}/{storyId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && (isImage() || isVideo()) && isValidSize(50);
+      allow delete: if isOwner(userId);
+    }
+    
+    // Reels
+    match /reels/{userId}/{reelId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && isVideo() && isValidSize(100);
+      allow delete: if isOwner(userId);
+    }
+    
+    // Chat media
+    match /chat-media/{chatId}/{messageId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (isImage() || isVideo() || isDocument()) && isValidSize(25);
+    }
+    
+    // Resumes
+    match /resumes/{userId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isDocument() && isValidSize(5);
+      allow delete: if isOwner(userId);
+    }
+    
+    // College verification documents
+    match /college-verification/{userId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && (isImage() || isDocument()) && isValidSize(5);
+      allow delete: if isOwner(userId);
+    }
+    
+    // Community media
+    match /communities/{communityId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isImage() && isValidSize(5);
+    }
+    
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
