@@ -12,8 +12,8 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-dotenv==1.0.0
 pydantic==2.5.0
-pydantic-settings
-bleach==6.1.0  # HTML sanitization for XSS protection
+pydantic-settings==2.1.0
+bleach==6.1.0
 
 # Database & Caching
 redis==5.0.1
