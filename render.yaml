@@ -10,7 +10,7 @@ services:
     rootDir: src/backend
     
     # Build and Start commands
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: "pip install --upgrade pip setuptools wheel && pip install -r requirements.txt"
     startCommand: "uvicorn main:app --host 0.0.0.0 --port 10000"
     
     healthCheckPath: /health
