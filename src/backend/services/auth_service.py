@@ -47,9 +47,10 @@ class AuthService:
     
     @staticmethod
     async def verify_firebase_token(token: str) -> Optional[dict]:
-        """Verify Firebase ID token"""
+        """Verify Firebase ID token in a threadpool to prevent blocking"""
+        from fastapi.concurrency import run_in_threadpool
         try:
-            decoded_token = auth.verify_id_token(token)
+            decoded_token = await run_in_threadpool(auth.verify_id_token, token)
             return decoded_token
         except Exception as e:
             print(f"Firebase token verification error: {e}")
@@ -58,9 +59,11 @@ class AuthService:
     @staticmethod
     async def register_user(email: str, password: str, username: str, full_name: str, phone: Optional[str] = None) -> dict:
         """Register new user"""
+        from fastapi.concurrency import run_in_threadpool
         try:
-            # Create user in Firebase Auth
-            user = auth.create_user(
+            # Create user in Firebase Auth asynchronously using threadpool
+            user = await run_in_threadpool(
+                auth.create_user,
                 email=email,
                 password=password,
                 display_name=full_name,

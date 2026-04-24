@@ -1,89 +1,45 @@
 {
   "indexes": [
     {
-      "collectionGroup": "posts",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {"fieldPath": "feed_type", "order": "ASCENDING"},
-        {"fieldPath": "created_at", "order": "DESCENDING"}
-      ]
-    },
-    {
-      "collectionGroup": "posts",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {"fieldPath": "userCollege", "order": "ASCENDING"},
-        {"fieldPath": "createdAt", "order": "DESCENDING"}
-      ]
-    },
-    {
-      "collectionGroup": "posts",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {"fieldPath": "userCollege", "order": "ASCENDING"},
-        {"fieldPath": "likes", "order": "DESCENDING"}
-      ]
-    },
-    {
-      "collectionGroup": "notifications",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {"fieldPath": "userId", "order": "ASCENDING"},
-        {"fieldPath": "created_at", "order": "DESCENDING"}
-      ]
-    },
-    {
-      "collectionGroup": "notifications",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {"fieldPath": "userId", "order": "ASCENDING"},
-        {"fieldPath": "is_read", "order": "ASCENDING"},
-        {"fieldPath": "created_at", "order": "DESCENDING"}
-      ]
-    },
-    {
       "collectionGroup": "chats",
       "queryScope": "COLLECTION",
       "fields": [
-        {"fieldPath": "participants", "arrayConfig": "CONTAINS"},
-        {"fieldPath": "updatedAt", "order": "DESCENDING"}
+        {
+          "fieldPath": "participants",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "updatedAt",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
-      "collectionGroup": "messages",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        {"fieldPath": "createdAt", "order": "ASCENDING"}
-      ]
-    },
-    {
-      "collectionGroup": "messages",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        {"fieldPath": "receiver_id", "order": "ASCENDING"},
-        {"fieldPath": "is_read", "order": "ASCENDING"}
-      ]
-    },
-    {
-      "collectionGroup": "users",
+      "collectionGroup": "notifications",
       "queryScope": "COLLECTION",
       "fields": [
-        {"fieldPath": "username_lower", "order": "ASCENDING"}
+        {
+          "fieldPath": "userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
-      "collectionGroup": "users",
+      "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
-        {"fieldPath": "full_name_lower", "order": "ASCENDING"}
-      ]
-    },
-    {
-      "collectionGroup": "comments",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        {"fieldPath": "post_id", "order": "ASCENDING"},
-        {"fieldPath": "created_at", "order": "ASCENDING"}
+        {
+          "fieldPath": "type",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
       ]
     }
   ],

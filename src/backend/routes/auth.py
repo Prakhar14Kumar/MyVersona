@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends, Header
-from typing import Optional
+from typing import Optional, Dict, Any
 from ..models.user import UserCreate, UserLogin, TokenResponse, UserProfile
 from ..services.auth_service import AuthService
 from ..services.firebase_service import FirebaseService
+from ..core.dependencies import get_current_user as auth_get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -82,17 +83,8 @@ async def firebase_login(firebase_token: str):
         raise HTTPException(status_code=401, detail=str(e))
 
 @router.get("/me", response_model=UserProfile)
-async def get_current_user(authorization: Optional[str] = Header(None)):
+async def get_current_user_profile(user: Dict[str, Any] = Depends(auth_get_current_user)):
     """Get current user profile"""
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    token = authorization.replace("Bearer ", "")
-    user = await AuthService.get_current_user(token)
-    
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    
     return user
 
 @router.post("/logout")
@@ -102,30 +94,23 @@ async def logout():
     return {"message": "Logged out successfully"}
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh_token(authorization: Optional[str] = Header(None)):
+async def refresh_token(user: Dict[str, Any] = Depends(auth_get_current_user)):
     """
     Refresh access token
     Allows extending the session before token expires
     """
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="No token provided")
-    
-    token = authorization.replace("Bearer ", "")
-    
     try:
-        # Verify current token and get user
-        user = await AuthService.get_current_user(token)
-        
-        if not user:
-            raise HTTPException(status_code=401, detail="Invalid or expired token")
-        
+        uid = user.get("uid")
+        if not uid:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+
         # Verify user still exists in Firebase
-        user_exists = await FirebaseService.get_user(user["uid"])
+        user_exists = await FirebaseService.get_user(uid)
         if not user_exists:
             raise HTTPException(status_code=401, detail="User not found")
         
         # Generate new token
-        new_token = AuthService.create_access_token({"sub": user["uid"]})
+        new_token = AuthService.create_access_token({"sub": uid})
         
         return {
             "access_token": new_token,

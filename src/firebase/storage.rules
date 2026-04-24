@@ -25,6 +25,10 @@ service firebase.storage {
              request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     }
     
+    function isValidPdf() {
+      return request.resource.contentType == 'application/pdf';
+    }
+    
     function isValidSize(maxSizeMB) {
       return request.resource.size < maxSizeMB * 1024 * 1024;
     }
@@ -71,7 +75,7 @@ service firebase.storage {
     // Resumes
     match /resumes/{userId}/{fileName} {
       allow read: if isOwner(userId);
-      allow write: if isOwner(userId) && isDocument() && isValidSize(5);
+      allow write: if isOwner(userId) && isValidPdf() && isValidSize(5);
       allow delete: if isOwner(userId);
     }
     

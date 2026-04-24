@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Header, Query
+from fastapi import APIRouter, HTTPException, Header, Query, Depends
 from typing import Optional, List, Literal
 import logging
 
@@ -7,42 +7,19 @@ from ..services.firebase_service import FirebaseService
 from ..services.auth_service import AuthService
 from ..services.ai_service import ai_service
 from ..websocket.notification_handler import notification_handler
+from ..core.dependencies import get_current_user_id as auth_get_current_user_id
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
-async def get_current_user_id(authorization: Optional[str] = Header(None)) -> str:
-    """Get current user ID from auth header"""
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=401,
-            detail={"success": False, "error": "Not authenticated"}
-        )
-    
-    try:
-        token = authorization.replace("Bearer ", "")
-        user = await AuthService.get_current_user(token)
-        
-        if not user:
-            raise HTTPException(
-                status_code=401,
-                detail={"success": False, "error": "Invalid token"}
-            )
-        
-        return user["uid"]
-    except Exception as e:
-        logger.error(f"Auth error: {e}")
-        raise HTTPException(
-            status_code=401,
-            detail={"success": False, "error": "Authentication failed"}
-        )
+
 
 # ==================== POST CREATION ====================
 
 @router.post("/", response_model=Post)
 async def create_post(
     post_data: PostCreate,
-    authorization: Optional[str] = Header(None)
+    user_id: str = Depends(auth_get_current_user_id)
 ):
     """
     Create a new post
@@ -52,7 +29,6 @@ async def create_post(
     - Returns: Complete post object
     """
     try:
-        user_id = await get_current_user_id(authorization)
         
         # Get user profile
         user = await FirebaseService.get_user(user_id)
@@ -100,7 +76,7 @@ async def get_feed(
     feed_type: Literal["entertainment", "career"],
     limit: int = Query(20, ge=1, le=50),
     last_post_id: Optional[str] = None,
-    authorization: Optional[str] = Header(None)
+    user_id: str = Depends(auth_get_current_user_id)
 ):
     """
     Get posts for a specific feed with cursor pagination
@@ -110,7 +86,6 @@ async def get_feed(
     - Cursor: last_post_id for pagination
     """
     try:
-        await get_current_user_id(authorization)  # Ensure authenticated
         
         posts = await FirebaseService.get_feed_posts(feed_type, limit, last_post_id)
         return posts
@@ -129,11 +104,10 @@ async def get_feed(
 @router.get("/{post_id}", response_model=Post)
 async def get_post(
     post_id: str,
-    authorization: Optional[str] = Header(None)
+    user_id: str = Depends(auth_get_current_user_id)
 ):
     """Get a specific post by ID"""
     try:
-        await get_current_user_id(authorization)
         
         post = await FirebaseService.get_post(post_id)
         if not post:
@@ -158,7 +132,7 @@ async def get_post(
 @router.post("/{post_id}/like")
 async def like_post(
     post_id: str,
-    authorization: Optional[str] = Header(None)
+    user_id: str = Depends(auth_get_current_user_id)
 ):
     """
     Like a post
@@ -168,7 +142,6 @@ async def like_post(
     - Increments likes_count
     """
     try:
-        user_id = await get_current_user_id(authorization)
         
         # Verify post exists and like it
         success = await FirebaseService.like_post(post_id, user_id)
@@ -193,7 +166,7 @@ async def like_post(
 @router.delete("/{post_id}/like")
 async def unlike_post(
     post_id: str,
-    authorization: Optional[str] = Header(None)
+    user_id: str = Depends(auth_get_current_user_id)
 ):
     """
     Unlike a post
@@ -203,7 +176,6 @@ async def unlike_post(
     - Decrements likes_count
     """
     try:
-        user_id = await get_current_user_id(authorization)
         
         # Verify post exists and unlike it
         success = await FirebaseService.unlike_post(post_id, user_id)
@@ -231,7 +203,7 @@ async def unlike_post(
 async def create_comment(
     post_id: str,
     comment_data: CommentCreate,
-    authorization: Optional[str] = Header(None)
+    user_id: str = Depends(auth_get_current_user_id)
 ):
     """
     Create a comment on a post
@@ -241,7 +213,6 @@ async def create_comment(
     - Increments comments_count
     """
     try:
-        user_id = await get_current_user_id(authorization)
         
         # Get user profile
         user = await FirebaseService.get_user(user_id)
@@ -286,7 +257,7 @@ async def get_comments(
     post_id: str,
     limit: int = Query(20, ge=1, le=100, description="Number of comments to fetch"),
     cursor: Optional[str] = Query(None, description="Cursor for pagination (comment_id)"),
-    authorization: Optional[str] = Header(None)
+    user_id: str = Depends(auth_get_current_user_id)
 ):
     """
     Get comments for a post with cursor pagination
@@ -297,7 +268,6 @@ async def get_comments(
     - Returns: comments list + next_cursor + has_more flag
     """
     try:
-        await get_current_user_id(authorization)
         
         # Get comments with cursor pagination
         comments, next_cursor = await FirebaseService.get_comments(post_id, limit, cursor)
@@ -323,11 +293,10 @@ async def get_comments(
 async def update_post(
     post_id: str,
     updates: PostUpdate,
-    authorization: Optional[str] = Header(None)
+    user_id: str = Depends(auth_get_current_user_id)
 ):
     """Update a post (content and hashtags only)"""
     try:
-        user_id = await get_current_user_id(authorization)
         
         post = await FirebaseService.get_post(post_id)
         if not post:
@@ -363,11 +332,10 @@ async def update_post(
 @router.delete("/{post_id}")
 async def delete_post(
     post_id: str,
-    authorization: Optional[str] = Header(None)
+    user_id: str = Depends(auth_get_current_user_id)
 ):
     """Delete a post (owner only)"""
     try:
-        user_id = await get_current_user_id(authorization)
         
         success = await FirebaseService.delete_post(post_id, user_id)
         if not success:

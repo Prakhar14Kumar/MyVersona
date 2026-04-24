@@ -146,9 +146,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     """Global exception handler - never expose internal errors"""
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    logger.error(f"Unhandled exception on {request.method} {request.url.path}: {str(exc)}", exc_info=True)
     
-    # Return safe error message
     return JSONResponse(
         status_code=500,
         content={
@@ -160,14 +159,14 @@ async def global_exception_handler(request, exc):
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc: RequestValidationError):
-    """Handle validation errors from Pydantic"""
-    logger.warning(f"Validation error: {exc.errors()}")
+    """Handle validation errors from Pydantic clearly"""
+    logger.warning(f"Validation error on {request.method} {request.url.path}: {exc.errors()}")
     
     return JSONResponse(
         status_code=422,
         content={
             "success": False,
-            "error": "Validation error",
+            "error": "Invalid payload parameters.",
             "details": exc.errors(),
             "type": "validation_error"
         }
@@ -175,13 +174,14 @@ async def validation_exception_handler(request, exc: RequestValidationError):
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request, exc: StarletteHTTPException):
-    """Handle HTTP exceptions"""
+    """Handle standard HTTP exceptions with structured response"""
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "success": False,
             "error": exc.detail,
-            "type": "http_error"
+            "type": "http_error",
+            "status_code": exc.status_code
         }
     )
 

@@ -7,6 +7,8 @@ from PyPDF2 import PdfReader
 import docx
 
 from ..core.auth.decorators import get_current_user
+from ..core.dependencies import get_current_user_id as auth_get_current_user_id
+
 
 logger = logging.getLogger(__name__)
 

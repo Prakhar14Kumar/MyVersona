@@ -722,7 +722,7 @@ class FirebaseService:
         """Check if similar notification already exists (prevent duplicates)"""
         try:
             query = db.collection("notifications")\
-                .where("userId", "==", user_id)\  # Changed from user_id to userId
+                .where("userId", "==", user_id)\
                 .where("type", "==", notification_type)\
                 .where("actor_id", "==", actor_id)
             

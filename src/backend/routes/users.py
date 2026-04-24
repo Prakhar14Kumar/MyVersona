@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Header, Query, UploadFile, File
+from fastapi import APIRouter, HTTPException, Header, Query, UploadFile, File, Depends
 from typing import Optional, List
 from ..models.user import UserProfile, UserUpdate
 from ..services.firebase_service import FirebaseService
@@ -6,26 +6,15 @@ from ..services.auth_service import AuthService
 from ..services.file_validator import FileValidator
 from firebase_admin import storage
 import uuid
+from ..core.dependencies import get_current_user_id as auth_get_current_user_id
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-async def get_current_user_id(authorization: Optional[str] = Header(None)) -> str:
-    """Get current user ID from auth header"""
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    token = authorization.replace("Bearer ", "")
-    user = await AuthService.get_current_user(token)
-    
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    
-    return user["uid"]
+
 
 @router.get("/me", response_model=UserProfile)
-async def get_my_profile(authorization: Optional[str] = Header(None)):
+async def get_my_profile(user_id: str = Depends(auth_get_current_user_id)):
     """Get current user's profile"""
-    user_id = await get_current_user_id(authorization)
     
     user = await FirebaseService.get_user(user_id)
     if not user:
@@ -36,10 +25,9 @@ async def get_my_profile(authorization: Optional[str] = Header(None)):
 @router.put("/me", response_model=UserProfile)
 async def update_my_profile(
     updates: UserUpdate,
-    authorization: Optional[str] = Header(None)
+    user_id: str = Depends(auth_get_current_user_id)
 ):
     """Update current user's profile"""
-    user_id = await get_current_user_id(authorization)
     
     update_data = {k: v for k, v in updates.dict().items() if v is not None}
     
@@ -55,10 +43,9 @@ async def update_my_profile(
 @router.get("/{username}", response_model=UserProfile)
 async def get_user_profile(
     username: str,
-    authorization: Optional[str] = Header(None)
+    user_id: str = Depends(auth_get_current_user_id)
 ):
     """Get user profile by username"""
-    await get_current_user_id(authorization)
     
     user = await FirebaseService.get_user_by_username(username)
     if not user:
@@ -70,10 +57,9 @@ async def get_user_profile(
 async def search_users(
     q: str = Query(..., min_length=1),
     limit: int = Query(20, ge=1, le=50),
-    authorization: Optional[str] = Header(None)
+    user_id: str = Depends(auth_get_current_user_id)
 ):
     """Search users by username or name"""
-    await get_current_user_id(authorization)
     
     users = await FirebaseService.search_users(q, limit)
     return users
@@ -81,10 +67,9 @@ async def search_users(
 @router.post("/{user_id}/follow")
 async def follow_user(
     user_id: str,
-    authorization: Optional[str] = Header(None)
+    current_user_id: str = Depends(auth_get_current_user_id)
 ):
     """Follow a user"""
-    current_user_id = await get_current_user_id(authorization)
     
     if current_user_id == user_id:
         raise HTTPException(status_code=400, detail="Cannot follow yourself")
@@ -103,10 +88,9 @@ async def follow_user(
 @router.delete("/{user_id}/follow")
 async def unfollow_user(
     user_id: str,
-    authorization: Optional[str] = Header(None)
+    current_user_id: str = Depends(auth_get_current_user_id)
 ):
     """Unfollow a user"""
-    current_user_id = await get_current_user_id(authorization)
     
     success = await FirebaseService.unfollow_user(current_user_id, user_id)
     if not success:
@@ -117,10 +101,9 @@ async def unfollow_user(
 @router.post("/upload-avatar")
 async def upload_avatar(
     file: UploadFile = File(...),
-    authorization: Optional[str] = Header(None)
+    user_id: str = Depends(auth_get_current_user_id)
 ):
     """Upload user avatar"""
-    user_id = await get_current_user_id(authorization)
     
     try:
         # Validate file (size and type)
@@ -152,10 +135,9 @@ async def upload_avatar(
 @router.post("/upload-cover")
 async def upload_cover(
     file: UploadFile = File(...),
-    authorization: Optional[str] = Header(None)
+    user_id: str = Depends(auth_get_current_user_id)
 ):
     """Upload user cover image"""
-    user_id = await get_current_user_id(authorization)
     
     try:
         # Validate file (size and type)

@@ -6,6 +6,8 @@ from firebase_admin import firestore
 
 from ..core.auth.decorators import get_current_user
 from ..services.firebase_service import db
+from ..core.dependencies import get_current_user_id as auth_get_current_user_id
+
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { backendService } from "../lib/backendService";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import type { Post } from "../lib/firestoreService";
 import { bookmarkPost, removeBookmark, isPostBookmarked } from "../lib/firestoreService";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
@@ -24,7 +24,9 @@ interface PostCardProps {
   onNavigate?: (page: string) => void;
 }
 
-export function PostCard({ post, currentUserId, currentUserName, currentUserAvatar, onNavigate }: PostCardProps) {
+import React, { memo } from 'react';
+
+export const PostCard = memo(function PostCardComponent({ post, currentUserId, currentUserName, currentUserAvatar, onNavigate }: PostCardProps) {
   const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(post.likedBy?.includes(currentUserId) || false);
   const [likesCount, setLikesCount] = useState(post.likes);
@@ -57,7 +59,7 @@ export function PostCard({ post, currentUserId, currentUserName, currentUserAvat
         await backendService.likePost(post.id!);
         setIsLiked(true);
         setLikesCount(prev => prev + 1);
-        
+
         // Track post liked event
         trackPostLiked(currentUserId, post.id!, post.type);
       }
@@ -97,7 +99,7 @@ export function PostCard({ post, currentUserId, currentUserName, currentUserAvat
         await bookmarkPost(currentUserId, post.id);
         setIsSaved(true);
         toast.success("Post saved to bookmarks");
-        
+
         // Track post bookmarked event
         trackPostBookmarked(currentUserId, post.id, post.type);
       }
@@ -158,7 +160,7 @@ export function PostCard({ post, currentUserId, currentUserName, currentUserAvat
                       console.log('[PostCard] Starting chat with user:', post.userId);
                       const chatId = await getOrCreateChat(currentUserId, post.userId);
                       console.log('[PostCard] Chat created/retrieved, ID:', chatId);
-                      
+
                       // Navigate to chat with the chatId in state
                       if (onNavigate) {
                         // Using app-level navigation
@@ -206,7 +208,7 @@ export function PostCard({ post, currentUserId, currentUserName, currentUserAvat
         {/* Post Content */}
         <div className="space-y-3">
           <p className="whitespace-pre-wrap">{post.content}</p>
-          
+
           {post.image && (
             <div className="rounded-lg overflow-hidden">
               <ImageWithFallback
@@ -295,4 +297,4 @@ export function PostCard({ post, currentUserId, currentUserName, currentUserAvat
       />
     </Card>
   );
-}
+});
