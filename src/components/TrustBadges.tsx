@@ -142,7 +142,7 @@ export function TrustBadges({ variant = 'inline', showStats = true }: TrustBadge
             <div className="text-3xl mb-2">{trustMetrics.placementRate}%</div>
             <div className="text-sm mb-2">Placement Success</div>
             <p className="text-xs text-muted-foreground">
-              Students successfully placed through VerSona
+              Students successfully placed through MyVerSona
             </p>
           </div>
         </div>

@@ -1,6 +1,6 @@
-# ⚡ VerSona Quick Start Guide
+# ⚡ MyVerSona Quick Start Guide
 
-**Get VerSona running on your local machine in 15 minutes.**
+**Get MyVerSona running on your local machine in 15 minutes.**
 
 > **Downloaded from Figma Make?** You're in the right place! This guide will walk you through everything step-by-step.  
 > **Never coded before?** Don't worry! Just follow along carefully. Each step is explained.

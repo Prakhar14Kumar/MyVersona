@@ -25,7 +25,7 @@ export function LoadingScreen() {
         
         <div className="space-y-2">
           <h2 className="text-2xl bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] bg-clip-text text-transparent tracking-tight">
-            VerSona
+            MyVerSona
           </h2>
           <div className="flex items-center justify-center gap-2">
             <motion.div

@@ -1,8 +1,8 @@
 // App Configuration
-export const APP_NAME = 'VerSona';
+export const APP_NAME = 'MyVerSona';
 export const APP_TAGLINE = 'Where College Life Meets Career Growth';
 
-// Brand Colors - VerSona Gradient Palette
+// Brand Colors - MyVerSona Gradient Palette
 export const COLORS = {
   gradient: {
     start: '#FFB88C',

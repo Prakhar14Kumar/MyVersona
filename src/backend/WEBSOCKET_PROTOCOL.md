@@ -1,6 +1,6 @@
 # WebSocket Protocol Documentation
 
-Complete reference for all WebSocket messages in VerSona Backend.
+Complete reference for all WebSocket messages in MyVerSona Backend.
 
 ---
 

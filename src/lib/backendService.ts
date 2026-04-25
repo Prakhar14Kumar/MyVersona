@@ -1,6 +1,6 @@
 import { apiService } from "./apiService";
 import { Post, Comment, getAllPosts, getPostsByType, searchUsers, searchPosts } from "./firestoreService";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 
 // Backend specific types
 export interface BackendPost {
@@ -10,15 +10,17 @@ export interface BackendPost {
   full_name?: string;
   user_avatar?: string;
   content: string;
-  feed_type: "entertainment" | "career";
+  type: "entertainment" | "career";
+  media_urls?: string[];
+  media_type?: string;
   hashtags: string[];
-  likes_count: number;
-  comments_count: number;
+  likes: number;
+  comments: number;
   shares_count: number;
   bookmarks_count: number;
   is_verified_user: boolean;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   liked_by_me?: boolean;
 }
 
@@ -30,8 +32,8 @@ export interface BackendComment {
   full_name?: string;
   user_avatar?: string;
   content: string;
-  likes_count: number;
-  created_at: string;
+  likes: number;
+  createdAt: string;
 }
 
 // Mapper functions
@@ -42,13 +44,13 @@ const mapBackendPostToPost = (bp: BackendPost): Post => ({
   userAvatar: bp.user_avatar || "",
   userCollege: bp.is_verified_user ? "Verified User" : "",
   content: bp.content,
-  type: bp.feed_type,
-  likes: bp.likes_count,
-  comments: bp.comments_count,
+  type: bp.type,
+  likes: bp.likes,
+  comments: bp.comments,
   likedBy: [],
-  createdAt: new Date(bp.created_at),
-  updatedAt: new Date(bp.updated_at),
-  image: undefined,
+  createdAt: new Date(bp.createdAt),
+  updatedAt: new Date(bp.updatedAt),
+  image: bp.media_urls && bp.media_urls.length > 0 ? bp.media_urls[0] : undefined,
 });
 
 const mapBackendCommentToComment = (bc: BackendComment): Comment => ({
@@ -58,14 +60,13 @@ const mapBackendCommentToComment = (bc: BackendComment): Comment => ({
   userName: bc.full_name || bc.username,
   userAvatar: bc.user_avatar || "",
   content: bc.content,
-  createdAt: new Date(bc.created_at),
+  createdAt: new Date(bc.createdAt),
 });
 
 export const backendService = {
-  // Feed - Use real Firestore data
+  // Feed - Use real backend API only
   getFeed: async (feedType: "entertainment" | "career", limit: number = 20, lastPostId?: string): Promise<{ posts: Post[], lastPostId?: string }> => {
     try {
-      // Try backend API first
       let url = `/posts/feed/${feedType}?limit=${limit}`;
       if (lastPostId) {
         url += `&last_post_id=${lastPostId}`;
@@ -73,20 +74,14 @@ export const backendService = {
 
       const response = await apiService.get<BackendPost[]>(url);
       const posts = response.data.map(mapBackendPostToPost);
-      
+
       const newLastPostId = posts.length > 0 ? posts[posts.length - 1].id : undefined;
-      
+
       return { posts, lastPostId: newLastPostId };
     } catch (error) {
-      // Fallback to Firestore - REAL DATA ONLY
-      try {
-        const firestorePosts = await getPostsByType(feedType, limit);
-        return { posts: firestorePosts };
-      } catch (firestoreError) {
-        console.error('Failed to load feed from both backend and Firestore:', firestoreError);
-        toast.error('Failed to load feed. Please check your connection.');
-        return { posts: [] };
-      }
+      console.error('Failed to load feed from backend API:', error);
+      toast.error('Failed to load feed. Please check your connection.');
+      return { posts: [] };
     }
   },
 
@@ -95,7 +90,7 @@ export const backendService = {
     try {
       const response = await apiService.post<BackendPost>("/posts", {
         content,
-        feed_type: feedType,
+        type: feedType,
         hashtags,
         media_urls: mediaUrl ? [mediaUrl] : [],
         media_type: mediaType
@@ -148,7 +143,7 @@ export const backendService = {
       }
 
       const response = await apiService.get<{ comments: BackendComment[], next_cursor: string | null, has_more: boolean }>(url);
-      
+
       return {
         comments: response.data.comments.map(mapBackendCommentToComment),
         nextCursor: response.data.next_cursor || undefined,
@@ -184,12 +179,12 @@ export const backendService = {
     } catch (error: any) {
       // Backend unavailable – fall back to Firestore notifications
       // Check for network errors, circuit breaker errors, or timeout errors
-      const isBackendUnavailable = 
-        error.status === 0 || 
-        error.code === 'NETWORK_ERROR' || 
+      const isBackendUnavailable =
+        error.status === 0 ||
+        error.code === 'NETWORK_ERROR' ||
         error.code === 'TIMEOUT' ||
         (error.message && error.message.includes('Circuit breaker'));
-      
+
       if (isBackendUnavailable) {
         try {
           const { auth } = await import('./firebase');
@@ -282,12 +277,12 @@ export const backendService = {
       };
     } catch (error: any) {
       // Check if backend is unavailable (network errors, circuit breaker, timeout)
-      const isBackendUnavailable = 
-        error.status === 0 || 
-        error.code === 'NETWORK_ERROR' || 
+      const isBackendUnavailable =
+        error.status === 0 ||
+        error.code === 'NETWORK_ERROR' ||
         error.code === 'TIMEOUT' ||
         (error.message && error.message.includes('Circuit breaker'));
-      
+
       if (isBackendUnavailable) {
         // Backend unavailable – fall back to Firestore search (expected behavior, not an error)
         try {
@@ -296,7 +291,7 @@ export const backendService = {
             searchUsers(query, 10),
             searchPosts(query, 10)
           ]);
-          
+
           return {
             users: firestoreUsers,
             posts: firestorePosts
@@ -308,7 +303,7 @@ export const backendService = {
         // Unexpected error (not backend unavailability)
         console.error('Failed to perform combined search:', error);
       }
-      
+
       return { users: [], posts: [] };
     }
   },
@@ -342,7 +337,11 @@ export const backendService = {
   checkContent: async (content: string): Promise<{ is_safe: boolean, reason?: string, confidence: number }> => {
     try {
       const response = await apiService.post<any>("/moderation/check", { content });
-      return response.data;
+      return {
+        is_safe: response.data.is_appropriate,
+        reason: response.data.reason,
+        confidence: response.data.confidence === 'high' ? 1.0 : response.data.confidence === 'medium' ? 0.5 : 0.0
+      };
     } catch (error) {
       // Default to safe if moderation fails
       return { is_safe: true, confidence: 1.0 };

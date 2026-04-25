@@ -8,7 +8,7 @@ from typing import List, Callable, Optional
 from fastapi import HTTPException, status, Depends, Header
 from .roles import has_role, has_permission, has_any_role, has_all_permissions, can_moderate_college
 from .cache import permission_cache
-from ...services.auth_service import AuthService
+from services.auth_service import AuthService
 import logging
 
 logger = logging.getLogger(__name__)

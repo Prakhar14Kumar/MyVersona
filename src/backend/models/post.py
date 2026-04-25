@@ -22,7 +22,7 @@ except ImportError:
 
 class PostCreate(BaseModel):
     content: str = Field(..., min_length=1, max_length=2000)
-    feed_type: Literal["entertainment", "career"]
+    type: Literal["entertainment", "career"]
     media_urls: List[str] = []
     media_type: Optional[Literal["image", "video", "none"]] = "none"
     hashtags: List[str] = []
@@ -52,15 +52,15 @@ class Post(BaseModel):
     full_name: str
     
     content: str
-    feed_type: Literal["entertainment", "career"]
+    type: Literal["entertainment", "career"]
     media_urls: List[str] = []
     media_type: Literal["image", "video", "none"] = "none"
     
     hashtags: List[str] = []
     
     # Engagement
-    likes_count: int = 0
-    comments_count: int = 0
+    likes: int = 0
+    comments: int = 0
     shares_count: int = 0
     bookmarks_count: int = 0
     
@@ -72,8 +72,8 @@ class Post(BaseModel):
     
     # Metadata
     is_verified_user: bool = False
-    created_at: datetime
-    updated_at: datetime
+    createdAt: datetime
+    updatedAt: datetime
     
     class Config:
         from_attributes = True
@@ -110,8 +110,8 @@ class Comment(BaseModel):
     user_avatar: Optional[str] = None
     full_name: str
     content: str
-    likes_count: int = 0
-    created_at: datetime
+    likes: int = 0
+    createdAt: datetime
     
     class Config:
         from_attributes = True

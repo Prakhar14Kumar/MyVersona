@@ -4,7 +4,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Sparkles, TrendingUp, MessageSquare, Briefcase, Loader2 } from "lucide-react";
-import { signInWithEmail, signInWithGoogle, sendPasswordReset } from "../lib/firebaseAuth";
+import { signInWithEmail, signInWithGoogle, sendPasswordReset, getUserProfile } from "../lib/firebaseAuth";
 import { auth } from "../lib/firebase";
 import { validateEmail, globalRateLimiter } from "../utils/validation";
 import { useOnlineStatus } from "../utils/offline";
@@ -93,11 +93,18 @@ export function LoginPage() {
     setLoading(true);
     
     try {
-      await signInWithEmail(formData.email.trim(), formData.password);
+      const user = await signInWithEmail(formData.email.trim(), formData.password);
       
-      showToast.success("Welcome back to VerSona! 🎉");
+      showToast.success("Welcome back to MyVerSona! 🎉");
       globalRateLimiter.reset(`login:${formData.email}`);
-      navigate("/feed");
+      
+      // Check if profile is completed
+      const profile = await getUserProfile(user.uid);
+      if (profile && profile.profileCompleted === false) {
+        navigate("/onboarding");
+      } else {
+        navigate("/feed");
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       
@@ -137,11 +144,18 @@ export function LoginPage() {
     setLoading(true);
     
     try {
-      await signInWithGoogle();
+      const user = await signInWithGoogle();
       
       showToast.success("Signed in with Google! 🎉");
       globalRateLimiter.reset('google-login');
-      navigate("/feed");
+      
+      // Check if profile is completed
+      const profile = await getUserProfile(user.uid);
+      if (profile && profile.profileCompleted === false) {
+        navigate("/onboarding");
+      } else {
+        navigate("/feed");
+      }
     } catch (error: any) {
       console.error("Google login error:", error);
       
@@ -229,9 +243,7 @@ export function LoginPage() {
           <div className="space-y-3">
             <div className="inline-flex items-center justify-center w-24 h-24 bg-white/20 backdrop-blur-sm rounded-3xl shadow-2xl mb-4" 
                  style={{ transform: 'perspective(1000px) rotateY(-10deg)' }}>
-              <div className="w-16 h-16 bg-gradient-to-br from-[#FFB88C] to-[#6DE7C5] rounded-2xl flex items-center justify-center shadow-inner">
-                <span className="text-3xl font-bold text-white">V</span>
-              </div>
+              <img src="/logo.jpg" alt="MyVerSona Logo" className="w-full h-full object-cover rounded-3xl" />
             </div>
             <p className="text-xl lg:text-2xl opacity-90 leading-relaxed">
               Welcome Back to Your Community!
@@ -299,7 +311,7 @@ export function LoginPage() {
           {/* Header */}
           <div className="text-center space-y-3">
             <h2 className="text-3xl lg:text-4xl tracking-tight leading-tight">Welcome Back</h2>
-            <p className="text-muted-foreground leading-relaxed">Sign in to continue your journey on VerSona</p>
+            <p className="text-muted-foreground leading-relaxed">Sign in to continue your journey on MyVerSona</p>
           </div>
 
           {/* Form */}
@@ -355,7 +367,7 @@ export function LoginPage() {
               ) : (
                 <>
                   <Sparkles className="mr-2 h-5 w-5" />
-                  Sign In to VerSona
+                  Sign In to MyVerSona
                 </>
               )}
             </Button>

@@ -1,6 +1,6 @@
 # Attributions
 
-**Third-party libraries and resources used in VerSona.**
+**Third-party libraries and resources used in MyVerSona.**
 
 ---
 

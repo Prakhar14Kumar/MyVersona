@@ -1,5 +1,5 @@
 /**
- * Firebase Analytics Utility for VerSona
+ * Firebase Analytics Utility for MyVerSona
  * 
  * Provides safe, production-ready analytics tracking
  * - Handles analytics not available (AdBlock, privacy mode, SSR)

@@ -4,13 +4,28 @@ from fastapi.responses import JSONResponse
 import uvicorn
 import logging
 
-from config import settings, initialize_firebase
-from routes import auth, posts, users, chat, notifications, search, moderation, explore, career
-from websocket.chat_handler import chat_handler
-from websocket.notification_handler import notification_handler
-from websocket.presence_handler import presence_handler
-from websocket.connection_manager import manager
-from core.rate_limit import RateLimitMiddleware
+from src.backend.config import settings, initialize_firebase
+
+# Initialize Firebase before importing routes
+firebase_initialized = initialize_firebase()
+
+from src.backend.routes import (
+    posts,
+    users,
+    chat,
+    notifications,
+    search,
+    moderation,
+    explore,
+    career
+)
+
+from src.backend.websocket.chat_handler import chat_handler
+from src.backend.websocket.notification_handler import notification_handler
+from src.backend.websocket.presence_handler import presence_handler
+from src.backend.websocket.connection_manager import manager
+
+from src.backend.core.rate_limit import RateLimitMiddleware
 
 # Configure logging
 logging.basicConfig(
@@ -52,8 +67,7 @@ async def startup_event():
     """Initialize services on startup"""
     logger.info("🚀 Starting VerSona Backend...")
     
-    # Initialize Firebase
-    firebase_initialized = initialize_firebase()
+    # Firebase is already initialized at the top of the file
     if firebase_initialized:
         logger.info("✅ Firebase initialized")
     else:
@@ -83,17 +97,23 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
+    """Health check endpoint for monitoring and frontend probing"""
     return {
         "status": "healthy",
-        "firebase": "connected",
-        "rate_limiting": "enabled"
+        "firebase": "connected" if firebase_initialized else "unavailable",
+        "rate_limiting": "enabled",
+        "api_version": "v1",
+        "api_prefix": settings.API_V1_PREFIX,
     }
+
+@app.get("/ready")
+async def readiness_check():
+    """Lightweight readiness probe for frontend to detect backend availability"""
+    return {"ready": True}
 
 # ==================== API ROUTES ====================
 
 # Include routers with versioned API prefix
-app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
 app.include_router(posts.router, prefix=settings.API_V1_PREFIX)
 app.include_router(users.router, prefix=settings.API_V1_PREFIX)
 app.include_router(chat.router, prefix=settings.API_V1_PREFIX)

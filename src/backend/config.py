@@ -25,14 +25,12 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
 
-    # Security
-    SECRET_KEY: str = "dev-secret-key"  # fallback to avoid crash
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
+    # Security Settings (if any future ones are needed)
+    # Firebase handles authentication directly
 
     # Firebase
     FIREBASE_CREDENTIALS_PATH: Optional[str] = None
-    FIREBASE_STORAGE_BUCKET: Optional[str] = "versona-app.appspot.com"
+    FIREBASE_STORAGE_BUCKET: Optional[str] = "versona-social-media.firebasestorage.app"
 
     # Gemini AI
     GEMINI_API_KEY: Optional[str] = None
@@ -54,6 +52,7 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = True
+        extra = "ignore"
 
 
 # Initialize settings
@@ -63,8 +62,7 @@ settings = Settings()
 # =========================
 # VALIDATION (SAFE)
 # =========================
-if settings.SECRET_KEY == "dev-secret-key":
-    print("⚠️ WARNING: Using default SECRET_KEY (set in .env for production)")
+# (No critical secret keys needed for JWT anymore since Firebase is used)
 
 
 # =========================

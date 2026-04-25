@@ -39,7 +39,7 @@ export function FeedbackButton({ currentPage }: FeedbackButtonProps) {
       });
 
       toast.success('Thank you for your feedback! 🙏', {
-        description: 'Your input helps us improve VerSona',
+        description: 'Your input helps us improve MyVerSona',
       });
 
       // Reset form
@@ -76,7 +76,7 @@ export function FeedbackButton({ currentPage }: FeedbackButtonProps) {
               Share Your Feedback
             </DialogTitle>
             <DialogDescription>
-              Help us improve VerSona! Your feedback is valuable to us. 🇮🇳
+              Help us improve MyVerSona! Your feedback is valuable to us. 🇮🇳
             </DialogDescription>
           </DialogHeader>
 

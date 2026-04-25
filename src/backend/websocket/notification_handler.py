@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any
 import json
 from datetime import datetime
 from .connection_manager import manager
-from ..services.firebase_service import FirebaseService
+from services.firebase_service import FirebaseService
 
 class NotificationHandler:
     """Handle WebSocket notifications for real-time updates"""
@@ -53,10 +53,10 @@ class NotificationHandler:
             elif message_type == "clear_notification":
                 await NotificationHandler.clear_notification(data, user_id)
             
-            elif message_type == "ping":
-                # Keep-alive ping
+            elif message_type in ("ping", "heartbeat"):
+                # Keep-alive ping/heartbeat
                 await manager.send_personal_message({
-                    "type": "pong",
+                    "type": "pong" if message_type == "ping" else "heartbeat_ack",
                     "timestamp": datetime.utcnow().isoformat()
                 }, user_id)
             

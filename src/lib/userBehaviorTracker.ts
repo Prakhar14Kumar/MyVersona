@@ -1,5 +1,5 @@
 /**
- * User Behavior Tracker for VerSona
+ * User Behavior Tracker for MyVerSona
  * 
  * Tracks user events and stores them in Firestore for analytics.
  * 

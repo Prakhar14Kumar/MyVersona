@@ -13,6 +13,7 @@ const OnboardingFlow = lazy(() => import("./components/OnboardingFlow").then(mod
 const FeedPage = lazy(() => import("./components/FeedPage").then(module => ({ default: module.FeedPage })));
 const CollegePage = lazy(() => import("./components/CollegePage").then(module => ({ default: module.CollegePage })));
 const ChatPage = lazy(() => import("./components/ChatPage").then(module => ({ default: module.ChatPage })));
+const E2EChatPage = lazy(() => import("./components/E2EChatPage").then(module => ({ default: module.E2EChatPage })));
 const ExplorePage = lazy(() => import("./components/ExplorePage").then(module => ({ default: module.ExplorePage })));
 const SettingsPage = lazy(() => import("./components/SettingsPage").then(module => ({ default: module.SettingsPage })));
 const CareerPage = lazy(() => import("./components/CareerPage").then(module => ({ default: module.CareerPage })));
@@ -99,6 +100,16 @@ export const router = createBrowserRouter([
           <ProtectedRoute>
             <Suspense fallback={<LoadingScreen />}>
               <ChatPage />
+            </Suspense>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/e2e-chat",
+        element: (
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingScreen />}>
+              <E2EChatPage />
             </Suspense>
           </ProtectedRoute>
         ),

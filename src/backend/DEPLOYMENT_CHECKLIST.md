@@ -112,7 +112,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", 
 ### Production (Systemd Service)
 ```ini
 [Unit]
-Description=VerSona Backend API
+Description=MyVerSona Backend API
 After=network.target
 
 [Service]
@@ -133,7 +133,7 @@ WantedBy=multi-user.target
 ### Environment Variables (.env.production)
 ```env
 # App
-APP_NAME=VerSona Backend
+APP_NAME=MyVerSona Backend
 HOST=0.0.0.0
 PORT=8000
 DEBUG=False

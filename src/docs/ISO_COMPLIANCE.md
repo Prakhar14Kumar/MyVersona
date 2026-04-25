@@ -1,4 +1,4 @@
-# VerSona ISO Compliance Documentation
+# MyVerSona ISO Compliance Documentation
 
 **Version**: 2.0.0  
 **Last Updated**: December 2024  
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-VerSona is designed and developed in alignment with international standards including:
+MyVerSona is designed and developed in alignment with international standards including:
 - **ISO/IEC 25010** (Software Quality)
 - **ISO/IEC 27001** (Information Security)
 - **ISO/IEC 27017 & 27018** (Cloud Security & Privacy)
@@ -1019,7 +1019,7 @@ All code must be tested before production deployment.
 
 ## Certification Statement
 
-**VerSona** is designed and developed in alignment with international standards including:
+**MyVerSona** is designed and developed in alignment with international standards including:
 - ISO/IEC 25010 (Software Quality)
 - ISO/IEC 27001 (Information Security)
 - ISO/IEC 27017 & 27018 (Cloud Security & Privacy)

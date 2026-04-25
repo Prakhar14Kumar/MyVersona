@@ -1,4 +1,4 @@
-// Notification Migration Utility for VerSona
+// Notification Migration Utility for MyVerSona
 // Migrates legacy notification documents from user_id to userId field
 
 import { collection, query, where, getDocs, writeBatch, doc } from 'firebase/firestore';

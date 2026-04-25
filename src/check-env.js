@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * VerSona Environment Configuration Checker
+ * MyVerSona Environment Configuration Checker
  * Validates that all required environment variables are set
  */
 
@@ -47,7 +47,7 @@ const DEMO_VALUES = [
   'G-DEMO123456',
 ];
 
-console.log(`\n${colors.cyan}${colors.bright}🔍 VerSona Environment Configuration Checker${colors.reset}\n`);
+console.log(`\n${colors.cyan}${colors.bright}🔍 MyVerSona Environment Configuration Checker${colors.reset}\n`);
 
 // Check if .env file exists
 const envPath = path.join(process.cwd(), '.env');

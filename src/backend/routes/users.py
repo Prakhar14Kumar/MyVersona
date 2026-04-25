@@ -1,16 +1,30 @@
 from fastapi import APIRouter, HTTPException, Header, Query, UploadFile, File, Depends
+from pydantic import BaseModel
 from typing import Optional, List
-from ..models.user import UserProfile, UserUpdate
-from ..services.firebase_service import FirebaseService
-from ..services.auth_service import AuthService
-from ..services.file_validator import FileValidator
+from models.user import UserProfile, UserUpdate
+from services.firebase_service import FirebaseService
+from services.auth_service import AuthService
+from services.file_validator import FileValidator
 from firebase_admin import storage
 import uuid
-from ..core.dependencies import get_current_user_id as auth_get_current_user_id
+from core.dependencies import get_current_user_id as auth_get_current_user_id
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
+class PublicKeySync(BaseModel):
+    public_key: str
 
+@router.post("/sync-user")
+async def sync_user_public_key(
+    data: PublicKeySync,
+    user_id: str = Depends(auth_get_current_user_id)
+):
+    """Store the user's public key in Firestore for E2EE"""
+    try:
+        await FirebaseService.update_user(user_id, {"public_key": data.public_key})
+        return {"status": "success", "message": "Public key synchronized"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to sync public key: {str(e)}")
 
 @router.get("/me", response_model=UserProfile)
 async def get_my_profile(user_id: str = Depends(auth_get_current_user_id)):

@@ -338,8 +338,11 @@ export function ChatPage({ onNavigate }: ChatPageProps) {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex flex-col">
-              <div className="bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] bg-clip-text text-transparent font-bold">
-                VERSONA
+              <div className="flex items-center gap-2 cursor-pointer" onClick={handleBack}>
+                <img src="/logo.jpg" alt="MyVerSona" className="h-8 w-auto rounded-lg shadow-sm" />
+                <div className="text-xl font-bold bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] bg-clip-text text-transparent">
+                  MyVerSona
+                </div>
               </div>
               <div className="flex items-center gap-1">
                  <div className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}></div>

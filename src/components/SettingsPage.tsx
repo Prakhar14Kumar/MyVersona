@@ -94,9 +94,10 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
     <div className="min-h-screen bg-background flex">
       {/* Left Sidebar */}
       <aside className="w-64 bg-white border-r border-border fixed left-0 top-0 h-full flex flex-col">
-        <div className="p-6 border-b">
-          <div className="bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] bg-clip-text text-transparent">
-            VERSONA
+        <div className="p-6 border-b flex items-center gap-2 cursor-pointer" onClick={() => onNavigate("feed")}>
+          <img src="/logo.jpg" alt="MyVerSona" className="h-8 w-auto rounded-lg shadow-sm" />
+          <div className="text-xl font-bold bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] bg-clip-text text-transparent tracking-tight">
+            MyVerSona
           </div>
         </div>
 
@@ -407,7 +408,7 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
                       <Share2 className="h-5 w-5 text-[#FF6F91]" />
                       <CardTitle>Invite Friends</CardTitle>
                     </div>
-                    <CardDescription>Share VerSona with your college friends and earn rewards!</CardDescription>
+                    <CardDescription>Share MyVerSona with your college friends and earn rewards!</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {isLoadingReferral ? (
@@ -479,7 +480,7 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
                         </Button>
 
                         <p className="text-xs text-center text-muted-foreground">
-                          Help your friends discover VerSona and grow your college network together! 🚀
+                          Help your friends discover MyVerSona and grow your college network together! 🚀
                         </p>
                       </>
                     )}
@@ -849,7 +850,7 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
                     <div className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
                         <p>Download Your Data</p>
-                        <p className="text-xs text-muted-foreground">Get a copy of your VerSona data</p>
+                        <p className="text-xs text-muted-foreground">Get a copy of your MyVerSona data</p>
                       </div>
                       <Button variant="outline" size="sm">
                         Request Download
@@ -921,7 +922,7 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
                 <Card>
                   <CardContent className="p-4 flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">VerSona Version</p>
+                      <p className="text-sm text-muted-foreground">MyVerSona Version</p>
                       <p>v1.0.0 (Beta)</p>
                     </div>
                     <Badge variant="secondary">Up to date</Badge>

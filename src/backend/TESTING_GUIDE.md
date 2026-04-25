@@ -430,7 +430,7 @@ curl -X POST http://localhost:8000/api/v1/posts \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "content": "Hello VerSona! #firstpost",
+    "content": "Hello MyVerSona! #firstpost",
     "feed_type": "entertainment",
     "hashtags": ["firstpost"]
   }'

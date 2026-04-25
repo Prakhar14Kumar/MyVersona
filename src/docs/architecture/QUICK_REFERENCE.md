@@ -1,6 +1,6 @@
-# VerSona - Quick Reference Guide
+# MyVerSona - Quick Reference Guide
 
-**Quick reference for developers working on VerSona.**
+**Quick reference for developers working on MyVerSona.**
 
 ---
 

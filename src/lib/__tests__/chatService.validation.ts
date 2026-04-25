@@ -1,5 +1,5 @@
 /**
- * Chat Service Validation - Ensures implementation follows VerSona engineering rules
+ * Chat Service Validation - Ensures implementation follows MyVerSona engineering rules
  * 
  * Zero-Bug Prevention System Checks:
  * ✓ Rule 1: No versioned imports (except react-hook-form@7.55.0 and sonner@2.0.3)

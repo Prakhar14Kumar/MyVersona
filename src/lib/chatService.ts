@@ -12,6 +12,7 @@ import {
   Timestamp 
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { sanitizeInput } from '../utils/validation';
 
 /**
  * Chat data structure for Firestore
@@ -50,49 +51,30 @@ export async function getOrCreateChat(userId1: string, userId2: string): Promise
       throw new Error('Cannot create chat with yourself');
     }
 
-    // Sort participants to prevent duplicates
+    // Sort participants to prevent duplicates and generate deterministic ID
     const participants = [userId1, userId2].sort();
+    const chatId = `${participants[0]}_${participants[1]}`;
 
-    // Query for existing chat
-    const chatsRef = collection(db, 'chats');
-    const q = query(chatsRef, where('participants', 'array-contains', userId1));
+    // Query for existing chat using the deterministic ID
+    const chatRef = doc(db, 'chats', chatId);
+    const chatSnap = await getDoc(chatRef);
     
-    const snapshot = await getDocs(q);
-    console.log('[ChatService] Query result size:', snapshot.docs.length);
-    
-    // Check if chat exists with both participants
-    for (const docSnap of snapshot.docs) {
-      const data = docSnap.data();
-      const chatParticipants = data.participants;
+    if (!chatSnap.exists()) {
+      console.log('[ChatService] No existing chat found, creating new one for:', participants);
+      const newChat: Chat = {
+        participants,
+        lastMessage: '',
+        updatedAt: serverTimestamp() as Timestamp
+      };
       
-      // Data normalization: ensure it's an array
-      if (Array.isArray(chatParticipants) && 
-          chatParticipants.length === 2 && 
-          chatParticipants.includes(userId1) && 
-          chatParticipants.includes(userId2)) {
-        // Chat already exists
-        console.log('[ChatService] Existing chat found:', docSnap.id);
-        return docSnap.id;
-      }
+      // Use setDoc with merge to ensure atomic-like creation without overriding if created concurrently
+      await setDoc(chatRef, newChat, { merge: true });
+      console.log('[ChatService] New chat created successfully, ID:', chatId);
+    } else {
+      console.log('[ChatService] Existing chat found:', chatId);
     }
 
-    console.log('[ChatService] No existing chat found, creating new one for:', participants);
-
-    // Create new chat if not found
-    const newChat: Chat = {
-      participants,
-      lastMessage: '',
-      updatedAt: serverTimestamp() as Timestamp
-    };
-
-    const chatRef = await addDoc(chatsRef, newChat);
-    
-    if (!chatRef || !chatRef.id) {
-      throw new Error('Failed to generate chat ID');
-    }
-    
-    console.log('[ChatService] New chat created successfully, ID:', chatRef.id);
-    return chatRef.id;
+    return chatId;
 
   } catch (error) {
     console.error('[ChatService] Error in getOrCreateChat:', error);
@@ -121,11 +103,18 @@ export async function sendMessage(chatId: string, senderId: string, text: string
       throw new Error('Message text cannot be empty');
     }
 
+    if (trimmedText.length > 5000) {
+      throw new Error('Message too long (max 5000 characters)');
+    }
+
+    // Sanitize input to prevent XSS
+    const sanitizedText = sanitizeInput(trimmedText);
+
     // Create message in subcollection
     const messagesRef = collection(db, 'chats', chatId, 'messages');
     const messageData: Message = {
       senderId,
-      text: trimmedText,
+      text: sanitizedText,
       createdAt: serverTimestamp() as Timestamp
     };
 
@@ -134,7 +123,7 @@ export async function sendMessage(chatId: string, senderId: string, text: string
     // Update chat's lastMessage and updatedAt
     const chatRef = doc(db, 'chats', chatId);
     await setDoc(chatRef, {
-      lastMessage: trimmedText,
+      lastMessage: sanitizedText,
       updatedAt: serverTimestamp()
     }, { merge: true });
 

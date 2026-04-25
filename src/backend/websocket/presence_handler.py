@@ -3,7 +3,7 @@ from typing import Dict, Set, List
 import json
 from datetime import datetime, timedelta
 from .connection_manager import manager
-from ..services.firebase_service import FirebaseService
+from services.firebase_service import FirebaseService
 
 class PresenceHandler:
     """Handle user presence and online status"""

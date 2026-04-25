@@ -1,4 +1,4 @@
-// Firestore Service for VerSona - Database operations
+// Firestore Service for MyVerSona - Database operations
 import { 
   collection, 
   doc, 
@@ -190,6 +190,72 @@ export const getPostsByType = async (type: 'entertainment' | 'career', limitCoun
     return [];
   }
 };
+
+// Map backend snake_case Firestore document to frontend Post
+const mapFirestorePostToFrontendPost = (docId: string, data: any): Post => {
+  // Support both legacy camelCase and new snake_case documents
+  const createdAt = data.createdAt ? data.createdAt?.toDate() : (data.created_at ? data.created_at?.toDate() : new Date());
+  const updatedAt = data.updatedAt ? data.updatedAt?.toDate() : (data.updated_at ? data.updated_at?.toDate() : new Date());
+  
+  return {
+    id: data.post_id || docId,
+    userId: data.userId || data.user_id,
+    userName: data.userName || data.full_name || data.username || "Unknown User",
+    userAvatar: data.userAvatar || data.user_avatar || "",
+    userCollege: data.userCollege || (data.is_verified_user ? "Verified User" : null),
+    content: data.content,
+    image: data.image || (data.media_urls && data.media_urls.length > 0 ? data.media_urls[0] : undefined),
+    type: data.type,
+    likes: data.likes || data.likes_count || 0,
+    comments: data.comments || data.comments_count || 0,
+    likedBy: data.likedBy || [],
+    savedBy: data.savedBy || [],
+    createdAt,
+    updatedAt,
+  };
+};
+
+// Subscribe to posts for real-time feed updates
+export const subscribeToFeed = (
+  type: 'entertainment' | 'career',
+  limitCount: number = 20,
+  onUpdate: (posts: Post[]) => void,
+  onError?: (error: Error) => void
+): Unsubscribe => {
+  checkFirebaseInitialized();
+  
+  const postsRef = collection(db, 'posts');
+  // NOTE: Depending on your exact schema, 'created_at' vs 'createdAt' might require index tweaks.
+  // We use the Python backend's default "created_at" field for ordering if possible, 
+  // but if the index is built on 'createdAt', we use that. Assuming legacy index is 'createdAt'.
+  // If Firestore errors with "index required", ensure the index matches the orderBy field here.
+  const q = query(
+    postsRef,
+    // where('type', '==', type), // Omitted to avoid immediate composite index crash if not built yet
+    orderBy('createdAt', 'desc'),
+    limit(limitCount * 2)
+  );
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const posts: Post[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.type === type) {
+          posts.push(mapFirestorePostToFrontendPost(doc.id, data));
+        }
+      });
+      // Return only requested limit after client-side filtering
+      onUpdate(posts.slice(0, limitCount));
+    },
+    (error) => {
+      console.error('Feed subscription error:', error);
+      if (onError) onError(error);
+    }
+  );
+};
+
 
 // Get all posts for feed
 export const getAllPosts = async (limitCount: number = 50): Promise<Post[]> => {
@@ -933,6 +999,7 @@ export const getNotificationsForUser = async (
     const q = query(
       notifRef,
       where('userId', '==', userId),
+      orderBy('createdAt', 'desc'),
       limit(limitCount)
     );
     const snapshot = await getDocs(q);
@@ -971,6 +1038,7 @@ export const subscribeToNotifications = (
   const q = query(
     notifRef,
     where('userId', '==', userId),
+    orderBy('createdAt', 'desc'),
     limit(limitCount)
   );
   return onSnapshot(

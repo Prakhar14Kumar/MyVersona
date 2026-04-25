@@ -1,4 +1,4 @@
-// Firebase Authentication Service for VerSona
+// Firebase Authentication Service for MyVerSona
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -13,6 +13,7 @@ import {
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage, firebaseInitialized } from "./firebase";
+import { uploadImage } from "./cloudinary";
 
 export interface UserProfile {
   uid: string;
@@ -20,17 +21,40 @@ export interface UserProfile {
   displayName: string;
   username_lower?: string;
   full_name_lower?: string;
+  
+  // Onboarding tracking
+  profileCompleted: boolean;
+  onboardingStep: number;
+
+  // Step 1: Education
   college?: string;
   college_lower?: string;
+  collegeHashtag?: string;
+  degree?: string;
+  branch?: string;
+  graduationYear?: string;
+  city?: string;
+
+  // Step 2 & 3: Interests & Skills
+  interests?: string[];
+  interests_lower?: string[];
+  skills?: string[];
+  skills_lower?: string[];
+  careerGoals?: string[];
+  lookingFor?: string[];
+
+  // Step 4: Profile Customization
+  bio?: string;
+  photoURL?: string;
+  linkedin?: string;
+  github?: string;
+  portfolio?: string;
+
+  // Legacy fields (kept for compatibility)
   role?: 'student' | 'recruiter' | 'alumni';
   year?: string;
   major?: string;
-  photoURL?: string;
-  bio?: string;
-  skills?: string[];
-  skills_lower?: string[];
-  interests?: string[];
-  interests_lower?: string[];
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -95,6 +119,8 @@ export const signUpWithEmail = async (
       username_lower: finalDisplayName.toLowerCase(),
       full_name_lower: finalDisplayName.toLowerCase(),
       photoURL: firebaseUser.photoURL || undefined,
+      profileCompleted: false,
+      onboardingStep: 1,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -156,6 +182,8 @@ export const signInWithGoogle = async (): Promise<User> => {
         username_lower: finalDisplayName.toLowerCase(),
         full_name_lower: finalDisplayName.toLowerCase(),
         photoURL: firebaseUser.photoURL || undefined,
+        profileCompleted: false,
+        onboardingStep: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -311,41 +339,23 @@ export const uploadProfilePicture = async (
   file: File
 ): Promise<string> => {
   checkFirebaseInitialized();
-  if (!storage) throw new Error('Firebase Storage is not initialized');
 
-  console.log('[Upload Trace] 1. Initiating upload protocol for uid:', uid);
+  console.log('[Upload Trace] 1. Initiating Cloudinary upload protocol for uid:', uid);
   
   try {
-    const fileExtension = file.name.split('.').pop();
-    const fileName = `profile-pictures/${uid}.${fileExtension}`;
-    const storageRef = ref(storage, fileName);
-
-    console.log('[Upload Trace] 2. Storage reference built. Targeting bucket namespace:', fileName);
-
-    // FIX: Firebase SDK silently loops network retries for CORS errors instead of failing. 
-    // We enforce a strict 15-second Circuit Breaker timeout mapped against uploadBytes.
-    const uploadOperation = uploadBytes(storageRef, file);
-    const timeoutBreaker = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Firebase Storage timeout. Your GCP bucket is dropping packets (Likely missing CORS configuration).')), 15000);
-    });
-
-    console.log('[Upload Trace] 3. Transmitting bytes to Firebase Storage...');
-    await Promise.race([uploadOperation, timeoutBreaker]);
-    console.log('[Upload Trace] 4. Bytes transmitted and acknowledged by server.');
-
-    console.log('[Upload Trace] 5. Requesting public download URL signature...');
-    const urlOperation = getDownloadURL(storageRef);
-    const downloadURL = await Promise.race([urlOperation, timeoutBreaker]);
-    console.log('[Upload Trace] 6. Valid URL retrieved:', downloadURL);
+    console.log('[Upload Trace] 2. Transmitting bytes to Cloudinary...');
+    const uploadResult = await uploadImage(file);
+    const downloadURL = uploadResult.secure_url;
+    console.log('[Upload Trace] 3. Valid URL retrieved:', downloadURL);
 
     // Update user profile with new photo URL
-    console.log('[Upload Trace] 7. Patching firestore user profile document...');
+    console.log('[Upload Trace] 4. Patching firestore user profile document...');
     await updateUserProfile(uid, { photoURL: downloadURL });
-    console.log('[Upload Trace] 8. Profile perfectly synchronized.');
+    console.log('[Upload Trace] 5. Profile perfectly synchronized.');
 
     return downloadURL;
   } catch (error: any) {
     console.error('[Upload Trace] ❌ FATAL ERROR:', error);
-    throw new Error(error.message || 'Failed to upload profile picture. Ensure Google Cloud CORS is properly bound.');
+    throw new Error(error.message || 'Failed to upload profile picture to Cloudinary.');
   }
 };

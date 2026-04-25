@@ -4,9 +4,9 @@ import logging
 from datetime import datetime, timedelta
 from firebase_admin import firestore
 
-from ..core.auth.decorators import get_current_user
-from ..services.firebase_service import db
-from ..core.dependencies import get_current_user_id as auth_get_current_user_id
+from core.auth.decorators import get_current_user
+from services.firebase_service import db
+from core.dependencies import get_current_user_id as auth_get_current_user_id
 
 
 logger = logging.getLogger(__name__)
@@ -117,9 +117,9 @@ async def _get_trending_people() -> list:
     Get trending people sorted by followers count
     """
     try:
-        # Query users ordered by followersCount
+        # Query users ordered by followers
         users_ref = db.collection("users")
-        query = users_ref.order_by("followersCount", direction=firestore.Query.DESCENDING).limit(10).stream()
+        query = users_ref.order_by("followers", direction=firestore.Query.DESCENDING).limit(10).stream()
         
         trending_people = []
         for doc in query:
@@ -133,8 +133,8 @@ async def _get_trending_people() -> list:
                 "bio": user_data.get("bio", ""),
                 "college": user_data.get("college"),
                 "role": user_data.get("role", "student"),
-                "followersCount": user_data.get("followersCount", 0),
-                "postsCount": user_data.get("postsCount", 0),
+                "followersCount": user_data.get("followers", 0),
+                "postsCount": user_data.get("posts", 0),
             })
         
         logger.info(f"Trending people fetched: {len(trending_people)} users")
@@ -150,9 +150,9 @@ async def _get_trending_colleges() -> list:
     Get trending colleges sorted by members count
     """
     try:
-        # Query colleges ordered by membersCount
+        # Query colleges ordered by members
         colleges_ref = db.collection("colleges")
-        query = colleges_ref.order_by("membersCount", direction=firestore.Query.DESCENDING).limit(10).stream()
+        query = colleges_ref.order_by("members", direction=firestore.Query.DESCENDING).limit(10).stream()
         
         trending_colleges = []
         for doc in query:
@@ -163,8 +163,8 @@ async def _get_trending_colleges() -> list:
                 "name": college_data.get("name"),
                 "hashtag": college_data.get("hashtag"),
                 "banner": college_data.get("banner", ""),
-                "membersCount": college_data.get("membersCount", 0),
-                "postsCount": college_data.get("postsCount", 0),
+                "membersCount": college_data.get("members", 0),
+                "postsCount": college_data.get("posts", 0),
                 "verified": college_data.get("verified", False),
                 "location": college_data.get("location", ""),
             })

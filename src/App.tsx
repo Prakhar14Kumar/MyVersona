@@ -9,7 +9,7 @@ import { useAuth } from "./hooks/useAuth";
 import { initializeAndVerifyAnalytics } from "./lib/analytics";
 import { initBehaviorTracker, trackAppOpen } from "./lib/userBehaviorTracker";
 import { setupGlobalErrorHandlers } from "./lib/errorLogger";
-import { useTokenRefresh } from "./hooks/useTokenRefresh";
+
 
 function AppContent() {
   const { user } = useAuth();
@@ -33,7 +33,6 @@ function AppContent() {
   }, [user?.uid]);
 
   // Enable automatic token refresh
-  useTokenRefresh();
 
   return (
     <>

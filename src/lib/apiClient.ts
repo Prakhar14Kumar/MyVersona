@@ -1,15 +1,15 @@
 /**
- * VerSona Production API Client
+ * MyVerSona Production API Client
  * Clean, centralized fetch wrapper with automatic Firebase JWT injection
  * and global 401/403 error interception.
  */
 
 import { auth } from './firebase';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { API_CONFIG } from './config';
 
 // Define base URL for all local backend calls
-const BASE_URL = process.env.NODE_ENV === 'production' 
+const BASE_URL = import.meta.env?.PROD 
   ? API_CONFIG.BACKEND_URL 
   : 'http://localhost:8000';
 
@@ -76,7 +76,7 @@ class ApiClient {
           return text ? JSON.parse(text) : null;
       } catch (e) {
           console.error('[API JSON PARSE ERROR]', text);
-          toast.error("Versona is catching its breath. Let's try that again.");
+          toast.error("MyVerSona is catching its breath. Let's try that again.");
           throw new Error('Invalid JSON response from server.');
       }
     } catch (error: any) {

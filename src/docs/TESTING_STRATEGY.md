@@ -1,4 +1,4 @@
-# VerSona Testing Strategy
+# MyVerSona Testing Strategy
 **ISO/IEC 29119 Compliant**
 
 **Version**: 1.0  
@@ -10,7 +10,7 @@
 ## 1. Introduction
 
 ### 1.1 Purpose
-This document defines the comprehensive testing strategy for VerSona, ensuring high-quality, secure, and reliable software delivery in compliance with ISO/IEC 29119 Software Testing standards.
+This document defines the comprehensive testing strategy for MyVerSona, ensuring high-quality, secure, and reliable software delivery in compliance with ISO/IEC 29119 Software Testing standards.
 
 ### 1.2 Scope
 This strategy covers:
@@ -845,7 +845,7 @@ export const mockPost = {
 
 ## Conclusion
 
-This testing strategy ensures VerSona maintains the highest quality standards through comprehensive, automated, and continuous testing aligned with ISO/IEC 29119. Regular review and continuous improvement will keep our testing practices effective and efficient.
+This testing strategy ensures MyVerSona maintains the highest quality standards through comprehensive, automated, and continuous testing aligned with ISO/IEC 29119. Regular review and continuous improvement will keep our testing practices effective and efficient.
 
 ---
 

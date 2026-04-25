@@ -1,4 +1,4 @@
-// Error Logging Service for VerSona
+// Error Logging Service for MyVerSona
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
 import { toast } from "sonner@2.0.3";

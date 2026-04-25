@@ -65,6 +65,65 @@ class WebSocketService {
     try {
       const wsUrl = this.getWebSocketUrl(endpoint, userId);
       console.log(`🔌 Connecting WebSocket: ${endpoint} at ${wsUrl}`);
+      
+      const socket = new WebSocket(wsUrl);
+      this.sockets.set(key, socket);
+      
+      socket.onopen = () => {
+        console.log(`✅ WebSocket connected: ${endpoint}`);
+        this.notifyStatusHandlers(endpoint, 'connected');
+        this.startHeartbeat(key, socket);
+        this.reconnectAttempts.set(key, 0);
+        this.sendQueuedMessages(key, socket);
+      };
+      
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          if (data.type === 'heartbeat_ack') return;
+          
+          if (data.messageId) {
+            this.removeFromQueue(key, data.messageId);
+          }
+          
+          this.handleMessage(endpoint, data);
+        } catch (error) {
+          console.error(`Error parsing WebSocket message from ${endpoint}:`, error);
+        }
+      };
+      
+      socket.onclose = (event) => {
+        this.stopHeartbeat(key);
+        
+        if (!event.wasClean) {
+          this.notifyStatusHandlers(endpoint, 'disconnected');
+          this.handleConnectionFailure(endpoint, userId);
+          
+          // Reconnect logic
+          const attempts = this.reconnectAttempts.get(key) || 0;
+          if (attempts < this.options.maxReconnectAttempts) {
+            this.notifyStatusHandlers(endpoint, 'reconnecting');
+            this.reconnectAttempts.set(key, attempts + 1);
+            
+            const delay = this.calculateReconnectDelay(attempts);
+            console.log(`🔄 Reconnecting WebSocket ${endpoint} in ${delay}ms (Attempt ${attempts + 1})`);
+            
+            setTimeout(() => {
+              this.connect(endpoint, userId);
+            }, delay);
+          }
+        } else {
+          this.notifyStatusHandlers(endpoint, 'disconnected');
+          this.sockets.delete(key);
+        }
+      };
+      
+      socket.onerror = (error) => {
+        console.error(`❌ WebSocket error for ${endpoint}:`, error);
+        // Let onclose handle the reconnection
+      };
+
     } catch (error) {
       console.error(`❌ Failed to create WebSocket connection for ${endpoint}:`, error);
       this.notifyStatusHandlers(endpoint, 'disconnected');

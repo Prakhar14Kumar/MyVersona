@@ -1,5 +1,5 @@
 /**
- * VerSona - Bulk Fix Existing Users
+ * MyVerSona - Bulk Fix Existing Users
  * 
  * This script connects to Firestore using the Firebase Admin SDK,
  * fetches all existing users, and backfills required search fields
@@ -26,7 +26,7 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 async function fixUsers() {
-  console.log('Starting VerSona user document backfill...');
+  console.log('Starting MyVerSona user document backfill...');
 
   try {
     const usersRef = db.collection('users');

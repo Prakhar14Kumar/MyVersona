@@ -1,4 +1,4 @@
-# 📘 VerSona Backend API Reference - Week 1
+# 📘 MyVerSona Backend API Reference - Week 1
 
 **Base URL:** `http://localhost:8000` (dev) | `https://api.versona.app` (prod)  
 **Version:** 1.0.0  
@@ -30,7 +30,7 @@ Get token from:
 **Request:**
 ```json
 {
-  "content": "Hello VerSona! #firstpost",
+  "content": "Hello MyVerSona! #firstpost",
   "feed_type": "entertainment",
   "hashtags": ["firstpost"],
   "media_urls": [],
@@ -51,7 +51,7 @@ Get token from:
   "username": "john_doe",
   "full_name": "John Doe",
   "user_avatar": "https://...",
-  "content": "Hello VerSona! #firstpost",
+  "content": "Hello MyVerSona! #firstpost",
   "feed_type": "entertainment",
   "hashtags": ["firstpost"],
   "likes_count": 0,

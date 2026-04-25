@@ -5,8 +5,8 @@ import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Progress } from "./ui/progress";
 import { toast } from "sonner@2.0.3";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage, db } from "../lib/firebase";
+import { db } from "../lib/firebase";
+import { uploadDocument } from "../lib/cloudinary";
 import { doc, updateDoc } from "firebase/firestore";
 import { apiService } from "../lib/apiService";
 import { useAuth } from "../hooks/useAuth";
@@ -81,13 +81,9 @@ export function ResumeUpload() {
     setUploading(true);
 
     try {
-      // 1. Upload to Firebase Storage
-      const timestamp = Date.now();
-      const fileName = `${timestamp}_${selectedFile.name}`;
-      const storageRef = ref(storage, `resumes/${user.uid}/${fileName}`);
-
-      await uploadBytes(storageRef, selectedFile);
-      const downloadURL = await getDownloadURL(storageRef);
+      // 1. Upload to Cloudinary
+      const uploadResult = await uploadDocument(selectedFile);
+      const downloadURL = uploadResult.secure_url;
 
       // 2. Save resumeUrl to user document
       const userRef = doc(db, "users", user.uid);

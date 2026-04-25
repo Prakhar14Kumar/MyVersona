@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * VerSona - Setup Verification Script
+ * MyVerSona - Setup Verification Script
  * 
  * Verifies that all infrastructure is correctly configured
  * Run: node verify-setup.js
@@ -68,7 +68,7 @@ function fileContains(filePath, searchString) {
 
 async function verifySetup() {
   console.log('\n╔═══════════════════════════════════════════════════════════╗');
-  console.log('║         VerSona - Setup Verification Script              ║');
+  console.log('║         MyVerSona - Setup Verification Script              ║');
   console.log('╚═══════════════════════════════════════════════════════════╝\n');
 
   // Section 1: Core Files

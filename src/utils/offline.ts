@@ -1,4 +1,4 @@
-// Offline Detection and Handling for VerSona
+// Offline Detection and Handling for MyVerSona
 // Provides graceful degradation when network is unavailable
 
 import { useEffect, useState } from 'react';

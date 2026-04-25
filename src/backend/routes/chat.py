@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException, Header, Query, Depends
 from typing import Optional, List
-from ..models.chat import Message, MessageCreate, Conversation, ConversationWithUser, AIQuery, AIResponse
-from ..services.firebase_service import FirebaseService
-from ..services.auth_service import AuthService
-from ..services.ai_service import ai_service
-from ..core.dependencies import get_current_user_id as auth_get_current_user_id
+from models.chat import Message, MessageCreate, Conversation, ConversationWithUser, AIQuery, AIResponse
+from services.firebase_service import FirebaseService
+from services.auth_service import AuthService
+from services.ai_service import ai_service
+from core.dependencies import get_current_user_id as auth_get_current_user_id
 
 
 router = APIRouter(prefix="/chat", tags=["Chat"])

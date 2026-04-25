@@ -1,6 +1,6 @@
 /**
  * Global Persona Switch Component
- * A visually satisfying toggle acting as the core mechanic of Versona.
+ * A visually satisfying toggle acting as the core mechanic of MyVerSona.
  * Built with framer-motion to feel instantly tactile.
  */
 import React from 'react';

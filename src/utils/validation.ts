@@ -1,5 +1,6 @@
-// Validation Utilities for VerSona
+// Validation Utilities for MyVerSona
 // Prevents XSS, validates inputs, enforces security policies
+import DOMPurify from 'dompurify';
 
 /**
  * Password validation with strength requirements
@@ -110,17 +111,12 @@ export const validateName = (name: string): { isValid: boolean; error?: string }
 export const sanitizeInput = (input: string): string => {
   if (!input) return '';
 
-  // Remove HTML tags
-  let sanitized = input.replace(/<[^>]*>/g, '');
-  
-  // Encode special characters
-  sanitized = sanitized
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;');
+  // Use DOMPurify for robust XSS sanitization
+  // We strip all HTML tags by passing ALLOWED_TAGS: []
+  const sanitized = DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: []
+  });
 
   return sanitized.trim();
 };

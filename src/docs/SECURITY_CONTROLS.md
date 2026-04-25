@@ -1,4 +1,4 @@
-# VerSona Security Controls Matrix
+# MyVerSona Security Controls Matrix
 **ISO/IEC 27001 Annex A Controls**
 
 **Version**: 1.0  

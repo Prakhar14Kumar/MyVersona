@@ -5,14 +5,24 @@ import io
 import re
 from PyPDF2 import PdfReader
 import docx
+import spacy
+from spacy.matcher import PhraseMatcher
 
-from ..core.auth.decorators import get_current_user
-from ..core.dependencies import get_current_user_id as auth_get_current_user_id
+from core.auth.decorators import get_current_user
+from core.dependencies import get_current_user_id as auth_get_current_user_id
 
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/career", tags=["career"])
+
+# Initialize spaCy model
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    logger.warning("Spacy model 'en_core_web_sm' not found. Fallback to blank English model.")
+    nlp = spacy.blank("en")
+
 
 
 def extract_text_from_pdf(file_content: bytes) -> str:
@@ -54,9 +64,47 @@ def extract_text_from_doc(file_content: bytes) -> str:
         raise HTTPException(status_code=400, detail="Failed to extract text from DOC. Please use PDF or DOCX format.")
 
 
+def extract_provider_details(text: str) -> dict:
+    """Extract provider details like Name, Email, Phone, and Location"""
+    details = {
+        "name": None,
+        "email": None,
+        "phone": None,
+        "location": None
+    }
+    
+    # Extract Email using Regex
+    email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', text)
+    if email_match:
+        details["email"] = email_match.group(0)
+        
+    # Extract Phone using Regex
+    phone_match = re.search(r'\b\d{10}\b|\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b|\+?\d{1,3}[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{3,4}[-.\s]?\d{4}', text)
+    if phone_match:
+        details["phone"] = phone_match.group(0).strip()
+        
+    doc = nlp(text)
+    
+    # Extract Name using NER (Heuristic: first PERSON entity found in the first few lines)
+    lines = text.split('\n')
+    top_text = '\n'.join(lines[:10])
+    top_doc = nlp(top_text)
+    for ent in top_doc.ents:
+        if ent.label_ == "PERSON":
+            details["name"] = ent.text.strip()
+            break
+            
+    # Extract Location using NER
+    for ent in doc.ents:
+        if ent.label_ in ["GPE", "LOC"]:
+            details["location"] = ent.text.strip()
+            break
+            
+    return details
+
+
 def extract_skills(text: str) -> List[str]:
-    """Extract skills from resume text using keyword matching"""
-    # Common tech and professional skills
+    """Extract skills from resume text using spaCy PhraseMatcher"""
     skill_keywords = [
         "python", "java", "javascript", "typescript", "react", "node.js", "angular",
         "vue", "sql", "mongodb", "postgresql", "aws", "azure", "gcp", "docker",
@@ -70,16 +118,18 @@ def extract_skills(text: str) -> List[str]:
         "teamwork", "analytical", "critical thinking"
     ]
     
-    text_lower = text.lower()
+    matcher = PhraseMatcher(nlp.vocab, attr="LOWER")
+    patterns = [nlp.make_doc(skill) for skill in skill_keywords]
+    matcher.add("SKILLS", patterns)
+    
+    doc = nlp(text)
+    matches = matcher(doc)
+    
     found_skills = []
-    
-    for skill in skill_keywords:
-        # Use word boundary to avoid partial matches
-        pattern = r'\b' + re.escape(skill.lower()) + r'\b'
-        if re.search(pattern, text_lower):
-            # Capitalize properly
-            found_skills.append(skill.title())
-    
+    for match_id, start, end in matches:
+        span = doc[start:end]
+        found_skills.append(span.text.title())
+        
     # Remove duplicates and limit to 15 skills
     found_skills = list(dict.fromkeys(found_skills))[:15]
     return found_skills
@@ -99,7 +149,7 @@ def calculate_ats_score(text: str, skills: List[str]) -> int:
     # Check for contact information (10 points)
     if re.search(r'[\w\.-]+@[\w\.-]+\.\w+', text):  # Email
         score += 5
-    if re.search(r'\b\d{10}\b|\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b', text):  # Phone
+    if re.search(r'\b\d{10}\b|\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b|\+?\d{1,3}[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{3,4}[-.\s]?\d{4}', text):  # Phone
         score += 5
     
     # Skills count (up to 30 points)
@@ -119,6 +169,16 @@ def calculate_ats_score(text: str, skills: List[str]) -> int:
     word_count = len(text.split())
     if 300 <= word_count <= 1000:
         score += 10
+        
+    # Use spaCy NER to check for Organizations and Dates
+    doc = nlp(text)
+    has_orgs = any(ent.label_ == "ORG" for ent in doc.ents)
+    has_dates = any(ent.label_ == "DATE" for ent in doc.ents)
+    
+    if has_orgs:
+        score += 5  # Bonus for mentioning specific organizations/companies
+    if has_dates:
+        score += 5  # Bonus for mentioning timelines/dates
     
     # Cap at 100
     return min(score, 100)
@@ -239,13 +299,15 @@ async def upload_resume(
         skills = extract_skills(text)
         ats_score = calculate_ats_score(text, skills)
         suggestions = generate_suggestions(text, ats_score, skills)
+        provider_details = extract_provider_details(text)
         
         logger.info(f"Resume analyzed for user {current_user.get('uid')}: Score={ats_score}, Skills={len(skills)}")
         
         return {
             "ats_score": ats_score,
             "skills": skills,
-            "suggestions": suggestions
+            "suggestions": suggestions,
+            "provider_details": provider_details
         }
         
     except HTTPException:

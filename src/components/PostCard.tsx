@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ReportDialog } from "./ReportDialog";
 import { BlockDialog } from "./BlockDialog";
 import { trackPostLiked, trackPostBookmarked } from "../lib/userBehaviorTracker";
+import { getOptimizedCloudinaryUrl } from "../lib/cloudinary";
 
 import { useNavigate } from "react-router";
 
@@ -212,7 +213,7 @@ export const PostCard = memo(function PostCardComponent({ post, currentUserId, c
           {post.image && (
             <div className="rounded-lg overflow-hidden">
               <ImageWithFallback
-                src={post.image}
+                src={getOptimizedCloudinaryUrl(post.image)}
                 alt="Post image"
                 className="w-full h-auto object-cover"
               />

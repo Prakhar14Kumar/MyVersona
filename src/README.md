@@ -1,8 +1,8 @@
-# VerSona 🌟
+# MyVerSona 🌟
 
 **Where College Life Meets Career Growth**
 
-VerSona is a youth-focused, Indian-first social and professional networking platform designed to connect college students, foster communities, and accelerate career development.
+MyVerSona is a youth-focused, Indian-first social and professional networking platform designed to connect college students, foster communities, and accelerate career development.
 
 ---
 
@@ -279,7 +279,7 @@ This project is private and proprietary. Unauthorized copying, distribution, or 
 
 ## 👥 Team
 
-**VerSona Team**  
+**MyVerSona Team**  
 Building the future of college networking in India 🇮🇳
 
 ---

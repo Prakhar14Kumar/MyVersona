@@ -1,4 +1,4 @@
-# 🔥 Firebase Setup Instructions for VerSona
+# 🔥 Firebase Setup Instructions for MyVerSona
 
 ## ⚠️ IMPORTANT: You Must Replace Demo Credentials
 
@@ -22,7 +22,7 @@ The `.env` file currently contains **demo/placeholder values**. These will NOT w
 2. Scroll down to **"Your apps"** section
 3. Click the **</>** (Web) icon to add a web app
 4. Register your app:
-   - App nickname: `VerSona Web`
+   - App nickname: `MyVerSona Web`
    - ✓ Check "Also set up Firebase Hosting" (optional)
    - Click **"Register app"**
 
@@ -228,7 +228,7 @@ Firebase Spark (Free) plan includes:
 - Storage: 1GB storage, 10GB/month transfer
 - Authentication: Unlimited
 
-For VerSona in production, you'll likely need **Blaze Plan** (pay-as-you-go).
+For MyVerSona in production, you'll likely need **Blaze Plan** (pay-as-you-go).
 
 ---
 
@@ -264,4 +264,4 @@ All passing? You're ready to develop! 🚀
 ---
 
 **Last Updated:** April 2, 2026  
-**VerSona Version:** 2.0.0
+**MyVerSona Version:** 2.0.0

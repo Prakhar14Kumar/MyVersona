@@ -1,5 +1,5 @@
 /**
- * VerSona ML Service
+ * MyVerSona ML Service
  * 
  * PHASE 3: SHADOW MODE ACTIVE
  * ============================

@@ -2,9 +2,9 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 import logging
 
-from ..core.auth.decorators import get_current_user
-from ..services.ai_service import ai_service
-from ..core.dependencies import get_current_user_id as auth_get_current_user_id
+from core.auth.decorators import get_current_user
+from services.ai_service import ai_service
+from core.dependencies import get_current_user_id as auth_get_current_user_id
 
 
 logger = logging.getLogger(__name__)

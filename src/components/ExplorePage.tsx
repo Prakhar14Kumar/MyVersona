@@ -147,9 +147,10 @@ export function ExplorePage({ onNavigate, onlineUsers = new Set(), isUserOnline 
     <div className="min-h-screen bg-background flex">
       {/* Left Sidebar */}
       <aside className="w-64 bg-white border-r border-border fixed left-0 top-0 h-full flex flex-col">
-        <div className="p-6 border-b">
-          <div className="bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] bg-clip-text text-transparent">
-            VERSONA
+        <div className="p-6 border-b flex items-center gap-2 cursor-pointer" onClick={() => onNavigate("feed")}>
+          <img src="/logo.jpg" alt="MyVerSona" className="h-8 w-auto rounded-lg shadow-sm" />
+          <div className="text-xl font-bold bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] bg-clip-text text-transparent">
+            MyVerSona
           </div>
         </div>
 
@@ -219,7 +220,7 @@ export function ExplorePage({ onNavigate, onlineUsers = new Set(), isUserOnline 
         <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-border">
           <div className="p-4 space-y-4">
             <div className="flex items-center justify-between">
-              <h2>Explore VerSona</h2>
+              <h2>Explore MyVerSona</h2>
               <div className="flex items-center gap-3">
                 <Button variant="ghost" size="icon">
                   <Bell className="h-5 w-5" />

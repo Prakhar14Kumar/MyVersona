@@ -1,5 +1,5 @@
 /**
- * VerSona Service Worker
+ * MyVerSona Service Worker
  * Provides offline support and caching for better performance
  */
 
@@ -204,7 +204,7 @@ self.addEventListener('push', (event) => {
   console.log('[Service Worker] Push notification received');
   
   const options = {
-    body: event.data ? event.data.text() : 'New notification from VerSona',
+    body: event.data ? event.data.text() : 'New notification from MyVerSona',
     icon: '/icon-192.png',
     badge: '/badge-72.png',
     vibrate: [200, 100, 200],
@@ -225,7 +225,7 @@ self.addEventListener('push', (event) => {
   };
   
   event.waitUntil(
-    self.registration.showNotification('VerSona', options)
+    self.registration.showNotification('MyVerSona', options)
   );
 });
 
@@ -245,7 +245,7 @@ self.addEventListener('notificationclick', (event) => {
 // Helper functions for IndexedDB
 function openDatabase() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('VerSonaOfflineDB', 1);
+    const request = indexedDB.open('MyVerSonaOfflineDB', 1);
     
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);

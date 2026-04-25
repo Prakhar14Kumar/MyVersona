@@ -34,14 +34,14 @@ export function PerformanceMonitor() {
     const measureFPS = () => {
       const now = performance.now();
       frames++;
-      
+
       if (now >= lastTime + 1000) {
         const currentFPS = Math.round((frames * 1000) / (now - lastTime));
         setMetrics(prev => ({ ...prev, fps: currentFPS }));
         frames = 0;
         lastTime = now;
       }
-      
+
       fpsInterval = requestAnimationFrame(measureFPS);
     };
 
@@ -71,11 +71,11 @@ export function PerformanceMonitor() {
     return (
       <button
         onClick={() => setShowMonitor(true)}
-        className="fixed bottom-4 right-4 w-12 h-12 rounded-full bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] text-white shadow-lg hover:shadow-xl transition-all z-50 flex items-center justify-center"
+        className="fixed bottom-22 right-7 w-12 h-12 rounded-full bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] text-white shadow-lg hover:shadow-xl transition-all z-50 flex items-center justify-center"
         title="Show Performance Monitor"
       >
         <Activity className="w-5 h-5" />
-      </button>
+      </button >
     );
   }
 

@@ -1,4 +1,4 @@
-# VerSona - Complete Design System Documentation
+# MyVerSona - Complete Design System Documentation
 
 **Generated:** March 17, 2026  
 **Platform:** Web Application (React + TailwindCSS v4)  
@@ -1810,7 +1810,7 @@ onClick={() => {
 **"All under one SKY":**
 - Gradient = spectrum of student life
 - No sharp boundaries between entertainment and career
-- Smooth transition represents VerSona's integrated approach
+- Smooth transition represents MyVerSona's integrated approach
 
 ---
 
@@ -1906,7 +1906,7 @@ onClick={() => {
 
 ### 1. **Gradient = Spectrum of Life**
 
-**Effect:** Users subconsciously understand VerSona isn't binary (fun OR career), it's a spectrum.
+**Effect:** Users subconsciously understand MyVerSona isn't binary (fun OR career), it's a spectrum.
 
 **Result:** Reduces cognitive dissonance ("Can I post memes AND job updates?") — Yes, you can.
 
@@ -1950,7 +1950,7 @@ onClick={() => {
 
 ### Tone of Voice
 
-**VerSona's Voice:**
+**MyVerSona's Voice:**
 - **Friendly, not corporate:** "Join Now" not "Sign Up Today"
 - **Empowering, not salesy:** "Build Your Future" not "Get a Job"
 - **Inclusive, not exclusive:** "For Students, By Students"
@@ -2380,14 +2380,14 @@ import { Button } from './components/ui/button'
 
 // Gradient button (CTA)
 <Button className="bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5]">
-  Join VerSona
+  Join MyVerSona
 </Button>
 
 // Card with gradient text
 <Card>
   <CardContent>
     <h2 className="bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] bg-clip-text text-transparent">
-      Welcome to VerSona!
+      Welcome to MyVerSona!
     </h2>
   </CardContent>
 </Card>
@@ -2418,7 +2418,7 @@ This documentation is **exhaustive and deterministic**. Every design decision is
 - Context (where and why it's used)
 - Variants (all possible states)
 
-**Any developer or AI can recreate VerSona's exact UI using only this document.**
+**Any developer or AI can recreate MyVerSona's exact UI using only this document.**
 
 ---
 
@@ -2430,4 +2430,4 @@ This documentation is **exhaustive and deterministic**. Every design decision is
 
 **Version:** 1.0  
 **Last Updated:** March 17, 2026  
-**Maintained By:** VerSona Design Team
+**Maintained By:** MyVerSona Design Team

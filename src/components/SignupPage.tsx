@@ -1,24 +1,17 @@
 import { useState } from "react";
-import { signUpWithEmail, signInWithGoogle, updateUserProfile } from "../lib/firebaseAuth";
-import { validatePassword, validateEmail, validateName, validateCollege, validateHashtag, globalRateLimiter } from "../utils/validation";
+import { signUpWithEmail, signInWithGoogle } from "../lib/firebaseAuth";
+import { validatePassword, validateEmail, validateName, globalRateLimiter } from "../utils/validation";
 import { useOnlineStatus } from "../utils/offline";
 import { trackEvent, AnalyticsEvents, setAnalyticsUserId } from "../lib/analytics";
-import { ensureReferralCode, getUserByReferralCode, trackReferral } from "../lib/referralService";
 import { useNavigate } from "react-router";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Checkbox } from "./ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+
 import { Sparkles, Zap, GraduationCap, Users, Loader2, Hexagon } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
-// Provide a reliable fallback logo icon component inline
-const VersonaLogo = () => (
-  <div className="flex items-center justify-center w-full h-full text-white">
-    <Hexagon size={48} className="fill-white/20 stroke-white" strokeWidth={1.5} />
-  </div>
-);
+// We now use the permanent image logo from public/logo.jpg
 // Toast helper
 const showToast = {
   success: (msg: string) => {
@@ -33,24 +26,16 @@ const showToast = {
 
 export function SignupPage() {
   const navigate = useNavigate();
-  const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [userId, setUserId] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    college: "",
-    hashtag: "",
-    preferences: [] as string[],
-    referralCode: "",
   });
   const [validationErrors, setValidationErrors] = useState({
     name: "",
     email: "",
     password: [] as string[],
-    college: "",
-    hashtag: "",
   });
   const isOnline = useOnlineStatus();
 
@@ -132,7 +117,6 @@ export function SignupPage() {
         formData.name.trim()
       );
       
-      setUserId(user.uid);
       showToast.success("Account created successfully! 🎉");
       
       // Track signup event
@@ -152,12 +136,18 @@ export function SignupPage() {
       
       // User-friendly error messages
       let errorMessage = "Failed to create account. Please try again.";
-      if (error.code === 'auth/email-already-in-use') {
+      
+      if (error.message && error.message.includes("Firebase is not initialized")) {
+        errorMessage = "Configuration Error: Firebase is not initialized. Please add VITE_FIREBASE_API_KEY and other Firebase variables to your .env file.";
+      } else if (error.code === 'auth/email-already-in-use') {
         errorMessage = "This email is already registered. Please sign in instead.";
       } else if (error.code === 'auth/weak-password') {
         errorMessage = "Please choose a stronger password.";
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = "Please enter a valid email address.";
+      } else if (error.message) {
+        // Fallback to error message if we have one
+        errorMessage = error.message;
       }
       
       showToast.error(errorMessage);
@@ -183,7 +173,6 @@ export function SignupPage() {
     
     try {
       const user = await signInWithGoogle();
-      setUserId(user.uid);
       showToast.success("Signed in with Google! 🎉");
       
       globalRateLimiter.reset('google-signup');
@@ -206,84 +195,7 @@ export function SignupPage() {
     }
   };
 
-  const handleProfileSetup = async () => {
-    if (formData.preferences.length < 3) {
-      showToast.error("Please select at least 3 interests");
-      return;
-    }
-
-    // Validate college and hashtag if provided
-    if (formData.college.trim()) {
-      const collegeValidation = validateCollege(formData.college);
-      if (!collegeValidation.isValid) {
-        showToast.error(collegeValidation.error || "Invalid college name");
-        return;
-      }
-    }
-
-    if (formData.hashtag.trim()) {
-      const hashtagValidation = validateHashtag(formData.hashtag);
-      if (!hashtagValidation.isValid) {
-        showToast.error(hashtagValidation.error || "Invalid hashtag");
-        return;
-      }
-    }
-
-    setLoading(true);
-    
-    try {
-      // SAFE: Only include fields that have values
-      const updates: any = {
-        interests: formData.preferences,
-        role: 'student',
-      };
-      
-      if (formData.college.trim()) {
-        updates.college = formData.college.trim();
-      }
-      
-      await updateUserProfile(userId, updates);
-      
-      // Generate referral code for new user
-      try {
-        await ensureReferralCode(userId);
-      } catch (error) {
-        console.error('Failed to generate referral code:', error);
-        // Don't block signup if referral code generation fails
-      }
-      
-      // Track referral if code was provided
-      if (formData.referralCode.trim()) {
-        try {
-          const inviterId = await getUserByReferralCode(formData.referralCode.trim());
-          if (inviterId) {
-            await trackReferral(inviterId, userId, formData.referralCode.trim().toUpperCase());
-            showToast.success("Profile completed! Welcome to VerSona 🇮🇳 (Referral applied!)");
-          } else {
-            showToast.success("Profile completed! Welcome to VerSona 🇮🇳 (Invalid referral code)");
-          }
-        } catch (error) {
-          console.error('Failed to track referral:', error);
-          showToast.success("Profile completed! Welcome to VerSona 🇮🇳");
-        }
-      } else {
-        showToast.success("Profile completed! Welcome to VerSona 🇮🇳");
-      }
-      
-      setShowProfileSetup(false);
-      navigate("/feed");
-    } catch (error: any) {
-      console.error("Profile update error:", error);
-      showToast.error("Failed to update profile. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const preferences = [
-    "Technology", "Entertainment", "Sports", "Music", "Art & Design",
-    "Business", "Science", "Fashion", "Gaming", "Photography"
-  ];
+  // Removed handleProfileSetup logic as it is moved to OnboardingFlow.tsx
 
   return (
     <div className="min-h-screen flex">
@@ -305,10 +217,10 @@ export function SignupPage() {
           <div className="space-y-3">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-3xl shadow-2xl mb-4" 
                  style={{ transform: 'perspective(1000px) rotateY(-10deg)' }}>
-              <VersonaLogo />
+              <img src="/logo.jpg" alt="MyVerSona Logo" className="w-full h-full object-cover rounded-3xl" />
             </div>
-            <h1 className="text-5xl lg:text-6xl tracking-tight leading-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
-              VERSONA
+            <h1 className="text-5xl lg:text-6xl font-bold tracking-tight leading-tight" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
+              MyVerSona
             </h1>
             <p className="text-xl lg:text-2xl opacity-90 leading-relaxed">
               Where Entertainment Meets Opportunity
@@ -376,7 +288,7 @@ export function SignupPage() {
           {/* Header */}
           <div className="text-center space-y-3">
             <h2 className="text-3xl lg:text-4xl tracking-tight leading-tight">Create Your Account</h2>
-            <p className="text-muted-foreground leading-relaxed">Join thousands of Indian students on VerSona</p>
+            <p className="text-muted-foreground leading-relaxed">Join thousands of Indian students on MyVerSona</p>
           </div>
 
           {/* Form */}
@@ -505,131 +417,6 @@ export function SignupPage() {
           </p>
         </div>
       </div>
-
-      {/* Profile Setup Modal */}
-      <Dialog open={showProfileSetup} onOpenChange={setShowProfileSetup}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl tracking-tight">Complete Your Profile</DialogTitle>
-            <p className="text-sm text-muted-foreground leading-relaxed pt-1">
-              Help us personalize your VerSona experience
-            </p>
-          </DialogHeader>
-
-          <div className="space-y-6 py-4">
-            {/* College Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="college" className="text-sm">College Name</Label>
-              <Input
-                id="college"
-                placeholder="Search for your college (e.g., IIT Delhi, VIT Vellore...)"
-                value={formData.college}
-                onChange={(e) => setFormData({ ...formData, college: e.target.value })}
-                className="h-12"
-              />
-              {validateCollege(formData.college) && <p className="text-xs text-red-500 leading-relaxed">{validateCollege(formData.college)}</p>}
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Start typing to search from our list of 500+ Indian colleges
-              </p>
-            </div>
-
-            {/* College Hashtag */}
-            <div className="space-y-2">
-              <Label htmlFor="hashtag" className="text-sm">College Hashtag</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-lg">#</span>
-                <Input
-                  id="hashtag"
-                  placeholder="e.g., iitdelhi, vitvellore, delhiuniversity"
-                  value={formData.hashtag}
-                  onChange={(e) => setFormData({ ...formData, hashtag: e.target.value })}
-                  className="h-12"
-                />
-              </div>
-              {validateHashtag(formData.hashtag) && <p className="text-xs text-red-500 leading-relaxed">{validateHashtag(formData.hashtag)}</p>}
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                This will help you connect with your college community
-              </p>
-            </div>
-
-            {/* Interests */}
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <Label className="text-sm">Your Interests (Select at least 3)</Label>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  We'll customize your feed based on your interests
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {preferences.map((pref) => (
-                  <div key={pref} className="flex items-center space-x-2 p-3 rounded-lg border hover:border-[#FF6F91]/50 transition-colors">
-                    <Checkbox
-                      id={pref}
-                      checked={formData.preferences.includes(pref)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setFormData({
-                            ...formData,
-                            preferences: [...formData.preferences, pref],
-                          });
-                        } else {
-                          setFormData({
-                            ...formData,
-                            preferences: formData.preferences.filter((p) => p !== pref),
-                          });
-                        }
-                      }}
-                    />
-                    <Label htmlFor={pref} className="cursor-pointer text-sm leading-tight">
-                      {pref}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Referral Code (Optional) */}
-            <div className="space-y-2">
-              <Label htmlFor="referralCode" className="text-sm">Referral Code (Optional)</Label>
-              <Input
-                id="referralCode"
-                placeholder="Enter referral code (e.g., ABC123)"
-                value={formData.referralCode}
-                onChange={(e) => setFormData({ ...formData, referralCode: e.target.value.toUpperCase() })}
-                className="h-12"
-                maxLength={6}
-              />
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Have a friend on VerSona? Enter their referral code!
-              </p>
-            </div>
-
-            {/* Submit Button */}
-            <Button
-              onClick={handleProfileSetup}
-              className="w-full h-12 bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] hover:opacity-90 transition-all shadow-lg"
-              disabled={formData.preferences.length < 3 || loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Saving Profile...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-5 w-5" />
-                  Save & Continue to VerSona
-                </>
-              )}
-            </Button>
-            {formData.preferences.length < 3 && (
-              <p className="text-xs text-center text-muted-foreground leading-relaxed">
-                Please select at least 3 interests to continue
-              </p>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

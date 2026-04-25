@@ -1,4 +1,4 @@
-// Firebase Configuration for VerSona
+// Firebase Configuration for MyVerSona
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";

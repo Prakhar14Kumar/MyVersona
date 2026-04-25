@@ -4,7 +4,7 @@ import { Bell, Home, Compass, GraduationCap, MessageCircle, Settings, Briefcase,
 import { useApp } from "../contexts/AppContext";
 import { signOut } from "../lib/firebaseAuth";
 import { useNavigate, useLocation } from "react-router";
-import versonaLogo from "figma:asset/ef2e50ad7a151d7b9c86737646c4bf1acd9e7285.png";
+import versonaLogo from "../assets/Logo.jpg";
 
 interface NavbarProps {
   unreadNotifications?: number;
@@ -44,7 +44,7 @@ export function Navbar({ unreadNotifications = 0, onNotificationClick }: NavbarP
           className="cursor-pointer"
           onClick={() => navigate(isAuthenticated ? "/feed" : "/")}
         >
-          <img src={versonaLogo} alt="VerSona" className="h-8 w-auto" />
+          <img src={versonaLogo} alt="MyVerSona" className="h-8 w-auto" />
         </div>
         
         {isAuthenticated ? (

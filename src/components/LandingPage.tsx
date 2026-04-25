@@ -6,13 +6,9 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { TrustBadges } from "./TrustBadges";
 import { useNavigate } from "react-router";
 import { Hexagon } from "lucide-react";
+import coreTeamImg from "../assets/Core_team.png";
 
-// Provide a reliable fallback logo icon component inline
-const VersonaLogo = () => (
-  <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-[#FFB88C] to-[#FF6F91] rounded-xl text-white shadow-lg">
-    <Hexagon size={24} className="fill-white/20 stroke-white" strokeWidth={1.5} />
-  </div>
-);
+// We now use the permanent image logo from public/logo.jpg
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -24,8 +20,8 @@ export function LandingPage() {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-              <VersonaLogo />
-              <span className="text-2xl font-bold bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] bg-clip-text text-transparent">VerSona</span>
+              <img src="/logo.jpg" alt="MyVerSona Logo" className="w-10 h-10 object-cover rounded-xl shadow-lg" />
+              <span className="text-2xl font-bold bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] bg-clip-text text-transparent">MyVerSona</span>
             </div>
             <div className="flex items-center gap-4">
               <Button
@@ -155,7 +151,7 @@ export function LandingPage() {
                   onClick={() => navigate("/signup")}
                 >
                   <Sparkles className="mr-2 h-5 w-5" />
-                  Join VerSona Free
+                  Join MyVerSona Free
                 </Button>
                 <Button
                   size="lg"
@@ -175,7 +171,7 @@ export function LandingPage() {
               <div className="relative bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] p-1 rounded-3xl">
                 <ImageWithFallback
                   src="https://images.unsplash.com/photo-1520410973988-f551cf36c60d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2xsZWdlJTIwc3R1ZGVudHMlMjBwaG9uZSUyMGFwcHxlbnwxfHx8fDE3NjEwMzY4NjZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-                  alt="VerSona App Preview"
+                  alt="MyVerSona App Preview"
                   className="rounded-3xl shadow-2xl w-full h-auto object-cover"
                 />
               </div>
@@ -546,8 +542,8 @@ export function LandingPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] rounded-3xl blur-3xl opacity-20 animate-pulse"></div>
               <div className="relative bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] p-1 rounded-3xl">
                 <img 
-                  src="/assets/team-photo.png" 
-                  alt="VerSona Core Team - Built by Students, For Students" 
+                  src={coreTeamImg}
+                  alt="MyVerSona Core Team - Built by Students, For Students" 
                   className="rounded-3xl shadow-2xl w-full h-auto object-cover"
                 />
               </div>
@@ -626,7 +622,7 @@ export function LandingPage() {
                 Ready to Transform Your College Experience?
               </h2>
               <p className="text-xl lg:text-2xl opacity-90 leading-relaxed max-w-2xl mx-auto">
-                Join thousands of students already using VerSona to balance fun and career growth.
+                Join thousands of students already using MyVerSona to balance fun and career growth.
               </p>
               <div className="flex flex-wrap gap-4 justify-center pt-2">
                 <Button
@@ -664,7 +660,7 @@ export function LandingPage() {
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] bg-clip-text text-transparent">
-                  VerSona
+                  MyVerSona
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -705,7 +701,7 @@ export function LandingPage() {
           
           <div className="pt-8 border-t text-center">
             <p className="text-sm text-muted-foreground">
-              Made with ❤️ in India 🇮🇳 • © 2025 VerSona. All rights reserved.
+              Made with ❤️ in India 🇮🇳 • © 2025 MyVerSona. All rights reserved.
             </p>
           </div>
         </div>

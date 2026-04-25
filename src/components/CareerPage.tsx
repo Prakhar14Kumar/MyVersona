@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { AICareerAssistant } from "./AICareerAssistant";
 import { ResumeUpload } from "./ResumeUpload";
 import { Badge } from "./ui/badge";
-import versonaLogo from "figma:asset/ef2e50ad7a151d7b9c86737646c4bf1acd9e7285.png";
+import versonaLogo from "../assets/Logo.jpg";
 import { useAuth } from "../hooks/useAuth";
 
 interface CareerPageProps {
@@ -34,7 +34,7 @@ export function CareerPage({ onNavigate }: CareerPageProps) {
       <aside className="w-64 bg-white border-r border-border fixed left-0 top-0 h-full flex flex-col shadow-sm">
         <div className="p-6 border-b">
           <div className="flex items-center gap-3">
-            <img src={versonaLogo} alt="VerSona" className="h-8 w-auto" />
+            <img src={versonaLogo} alt="MyVerSona" className="h-8 w-auto" />
           </div>
         </div>
 

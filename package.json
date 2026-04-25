@@ -1,5 +1,5 @@
 {
-  "name": "VerSona Web App Design",
+  "name": "MyVerSona Web App Design",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -30,12 +30,16 @@
     "@radix-ui/react-toggle": "*",
     "@radix-ui/react-toggle-group": "*",
     "@radix-ui/react-tooltip": "*",
+    "@tanstack/react-virtual": "^3.1.2",
+    "@types/dompurify": "^3.0.5",
     "@vitejs/plugin-react": "*",
     "class-variance-authority": "*",
     "clsx": "*",
     "cmdk": "*",
+    "dompurify": "^3.4.1",
     "embla-carousel-react": "*",
     "firebase": "*",
+    "framer-motion": "^12.38.0",
     "fs": "*",
     "hono": "*",
     "input-otp": "*",
@@ -55,9 +59,8 @@
     "tw-animate-css": "^1.3.8",
     "url": "*",
     "vaul": "^1.1.2",
-    "zustand": "^4.5.2",
-    "@tanstack/react-virtual": "^3.1.2",
-    "vite": "*"
+    "vite": "*",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.1.12",

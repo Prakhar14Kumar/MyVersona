@@ -1,6 +1,6 @@
-# VerSona Local Setup and Run Guide
+# MyVerSona Local Setup and Run Guide
 
-**Complete guide to run the entire VerSona system on your local machine.**
+**Complete guide to run the entire MyVerSona system on your local machine.**
 
 Last Updated: February 22, 2026
 
@@ -8,9 +8,9 @@ Last Updated: February 22, 2026
 
 ## 1. Project Overview
 
-### What is VerSona?
+### What is MyVerSona?
 
-VerSona is a youth-focused, Indian-first social and professional networking platform designed for students and young professionals. It combines social networking features with career development tools, powered by AI.
+MyVerSona is a youth-focused, Indian-first social and professional networking platform designed for students and young professionals. It combines social networking features with career development tools, powered by AI.
 
 ### Key Features
 
@@ -35,7 +35,7 @@ VerSona is a youth-focused, Indian-first social and professional networking plat
 
 ### System Components
 
-The VerSona system consists of **3 separate services** that must all run simultaneously:
+The MyVerSona system consists of **3 separate services** that must all run simultaneously:
 
 1. **React Frontend** - Port `5173`
    - User interface and client-side logic
@@ -491,7 +491,7 @@ npm run dev
   ➜  press h + enter to show help
 ```
 
-**Verify**: Open browser to `http://localhost:5173/` - you should see VerSona app.
+**Verify**: Open browser to `http://localhost:5173/` - you should see MyVerSona app.
 
 ### 7.4 Startup Order Summary
 
@@ -522,7 +522,7 @@ Follow these steps to confirm everything is working.
 | Backend API | `http://localhost:8000/docs` | FastAPI Swagger UI |
 | Backend Health | `http://localhost:8000/health` | `{"status": "ok"}` |
 | AI Backend | `http://localhost:5000/health` | Health check response |
-| Frontend | `http://localhost:5173/` | VerSona app loads |
+| Frontend | `http://localhost:5173/` | MyVerSona app loads |
 
 ### 8.2 Test Authentication
 
@@ -1078,7 +1078,7 @@ If you've followed all steps and:
 - ✅ Feed loads (even if empty)
 - ✅ No console errors
 
-**You're ready to develop VerSona!**
+**You're ready to develop MyVerSona!**
 
 ---
 
@@ -1124,6 +1124,6 @@ git push origin feature/your-feature
 
 **Document Version**: 1.0  
 **Last Updated**: February 22, 2026  
-**Maintained By**: VerSona Engineering Team
+**Maintained By**: MyVerSona Engineering Team
 
 For issues or questions, refer to project documentation or contact the team.

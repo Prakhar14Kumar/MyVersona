@@ -16,7 +16,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 Content-Type: application/json
 
 {
-  "content": "Just launched VerSona! 🚀 Excited to connect with fellow students. #versona #launch #excited",
+  "content": "Just launched MyVerSona! 🚀 Excited to connect with fellow students. #versona #launch #excited",
   "feed_type": "career",
   "hashtags": ["versona", "launch", "excited"]
 }
@@ -30,7 +30,7 @@ Content-Type: application/json
   "username": "rajiv_sharma",
   "full_name": "Rajiv Sharma",
   "user_avatar": "https://storage.googleapis.com/versona/avatars/rajiv.jpg",
-  "content": "Just launched VerSona! 🚀 Excited to connect with fellow students. #versona #launch #excited",
+  "content": "Just launched MyVerSona! 🚀 Excited to connect with fellow students. #versona #launch #excited",
   "feed_type": "career",
   "media_urls": [],
   "media_type": "none",
@@ -51,7 +51,7 @@ Content-Type: application/json
 {
   post_id: "a1b2c3d4-e5f6-4789-a012-345678901234",
   user_id: "user_abc123",
-  content: "Just launched VerSona! 🚀 ...",
+  content: "Just launched MyVerSona! 🚀 ...",
   likes_count: 0,      // ← Counter initialized
   comments_count: 0,   // ← Counter initialized
   created_at: Timestamp(2026-02-15 14:30:00)
@@ -536,7 +536,7 @@ After all operations in Flow 1:
   post_id: "a1b2c3d4-e5f6-4789-a012-345678901234",
   user_id: "user_abc123",
   username: "rajiv_sharma",
-  content: "Just launched VerSona! 🚀 ...",
+  content: "Just launched MyVerSona! 🚀 ...",
   feed_type: "career",
   likes_count: 1,        // ← 2 likes - 1 unlike = 1
   comments_count: 3,     // ← 3 comments created

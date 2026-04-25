@@ -1,4 +1,4 @@
-# VerSona - Deployment URLs
+# MyVerSona - Deployment URLs
 
 **Last Updated:** [Update after deployment]  
 **Status:** 🟡 Pending deployment
@@ -285,7 +285,7 @@
 **Quick Copy Template (After Deployment):**
 
 ```
-VerSona Demo URLs
+MyVerSona Demo URLs
 
 Frontend: https://_____.vercel.app
 Backend: https://_____.railway.app

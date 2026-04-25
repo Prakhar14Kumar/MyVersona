@@ -1,4 +1,4 @@
-# VerSona Deployment Checklist
+# MyVerSona Deployment Checklist
 
 ## Pre-Deployment Tasks
 

@@ -47,7 +47,7 @@ export const ProPaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, 
               <div className="mx-auto bg-white/20 w-16 h-16 flex items-center justify-center rounded-2xl mb-4 backdrop-blur-md">
                 <Trophy size={32} className="text-yellow-300" />
               </div>
-              <h2 className="text-2xl font-bold mb-1">Upgrade to Versona Pro</h2>
+              <h2 className="text-2xl font-bold mb-1">Upgrade to MyVerSona Pro</h2>
               <p className="text-indigo-100 text-sm">Supercharge your career trajectory and stand out among your peers.</p>
             </div>
 

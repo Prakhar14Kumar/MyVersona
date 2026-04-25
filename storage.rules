@@ -1,17 +1,12 @@
 rules_version = '2';
 
-// Firebase Storage Security Rules for Versona Application
-// These rules govern access to profile pictures and post images
-
 service firebase.storage {
   match /b/{bucket}/o {
-    
-    // Default security: Deny all
+
     match /{allPaths=**} {
       allow read, write: if false;
     }
 
-    // Helper Functions
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -21,28 +16,33 @@ service firebase.storage {
     }
 
     function isValidImage() {
-      return request.resource.contentType.matches('image/.*') 
-             && request.resource.size < 5 * 1024 * 1024; // 5MB limit
+      return request.resource.contentType.matches('image/.*') &&
+             request.resource.size < 5 * 1024 * 1024;
     }
 
-    // Rules for profile pictures
-    match /profile-pictures/{userId}.{ext} {
-      // Anyone can view profile pictures
-      allow read: if true;
-      
-      // Only the authenticated owner can upload, and it must be an image < 5MB
+    function isValidPdf() {
+      return request.resource.contentType == 'application/pdf' &&
+             request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // Profile Pictures
+    match /profile-pictures/{userId}/{fileName} {
+      allow read: if true; // change if needed
       allow write: if isOwner(userId) && isValidImage();
+      allow delete: if isOwner(userId);
     }
 
-    // Rules for post images
+    // Post Images
     match /post-images/{userId}/{fileName} {
-      // Any authenticated user can view post images
       allow read: if isAuthenticated();
-      
-      // Only the authenticated owner can upload, and it must be an image < 5MB
       allow write: if isOwner(userId) && isValidImage();
-      
-      // Owners can delete their own post images
+      allow delete: if isOwner(userId);
+    }
+
+    // Resumes
+    match /resumes/{userId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidPdf();
       allow delete: if isOwner(userId);
     }
   }

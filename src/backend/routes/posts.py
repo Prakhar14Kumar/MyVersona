@@ -2,12 +2,24 @@ from fastapi import APIRouter, HTTPException, Header, Query, Depends
 from typing import Optional, List, Literal
 import logging
 
-from ..models.post import Post, PostCreate, PostUpdate, Comment, CommentCreate, CommentsResponse
-from ..services.firebase_service import FirebaseService
-from ..services.auth_service import AuthService
-from ..services.ai_service import ai_service
-from ..websocket.notification_handler import notification_handler
-from ..core.dependencies import get_current_user_id as auth_get_current_user_id
+from src.backend.models.post import (
+    Post,
+    PostCreate,
+    PostUpdate,
+    Comment,
+    CommentCreate,
+    CommentsResponse
+)
+
+from src.backend.services.firebase_service import FirebaseService
+from src.backend.services.auth_service import AuthService
+from src.backend.services.ai_service import ai_service
+
+from src.backend.websocket.notification_handler import notification_handler
+
+from src.backend.core.dependencies import (
+    get_current_user_id as auth_get_current_user_id
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/posts", tags=["Posts"])
@@ -38,14 +50,19 @@ async def create_post(
                 detail={"success": False, "error": "User not found"}
             )
         
+        # Safe cascading fallbacks for user profile fields
+        username = user.get("username") or user.get("username_lower") or user.get("displayName") or user.get("full_name") or "Anonymous User"
+        full_name = user.get("full_name") or user.get("displayName") or username
+        avatar_url = user.get("avatar_url") or user.get("photoURL") or ""
+
         # Create post document
         post_doc = {
             "user_id": user_id,
-            "username": user["username"],
-            "user_avatar": user.get("avatar_url"),
-            "full_name": user["full_name"],
+            "username": username,
+            "user_avatar": avatar_url,
+            "full_name": full_name,
             "content": post_data.content,  # Already sanitized by Pydantic validator
-            "feed_type": post_data.feed_type,
+            "type": post_data.type,
             "media_urls": post_data.media_urls,
             "media_type": post_data.media_type,
             "hashtags": post_data.hashtags,
@@ -222,12 +239,17 @@ async def create_comment(
                 detail={"success": False, "error": "User not found"}
             )
         
+        # Safe cascading fallbacks for user profile fields
+        username = user.get("username") or user.get("username_lower") or user.get("displayName") or user.get("full_name") or "Anonymous User"
+        full_name = user.get("full_name") or user.get("displayName") or username
+        avatar_url = user.get("avatar_url") or user.get("photoURL") or ""
+
         # Create comment document
         comment_doc = {
             "user_id": user_id,
-            "username": user["username"],
-            "user_avatar": user.get("avatar_url"),
-            "full_name": user["full_name"],
+            "username": username,
+            "user_avatar": avatar_url,
+            "full_name": full_name,
             "content": comment_data.content,  # Already sanitized by Pydantic validator
         }
         

@@ -1,4 +1,4 @@
-# 📚 VerSona Architecture Documentation
+# 📚 MyVerSona Architecture Documentation
 
 **This folder contains all architectural, technical, and setup documentation.**
 

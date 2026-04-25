@@ -7,10 +7,20 @@ from functools import wraps
 from typing import Callable, List
 from fastapi import WebSocket, WebSocketDisconnect
 from firebase_admin import auth as firebase_auth
-from ..auth.roles import has_role, has_permission, has_any_role, can_moderate_college
-from ..auth.cache import get_cached_user_permissions, cache_user_permissions
 import logging
 import json
+
+from src.backend.core.auth.roles import (
+    has_role,
+    has_permission,
+    has_any_role,
+    can_moderate_college
+)
+
+from src.backend.core.auth.cache import (
+    get_cached_user_permissions,
+    cache_user_permissions
+)
 
 logger = logging.getLogger(__name__)
 

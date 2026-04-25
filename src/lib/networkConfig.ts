@@ -1,5 +1,5 @@
 /**
- * VerSona Network Configuration
+ * MyVerSona Network Configuration
  * Complete network layer configuration optimized for Indian network conditions
  */
 

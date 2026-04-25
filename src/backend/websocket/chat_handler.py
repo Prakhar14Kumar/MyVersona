@@ -2,14 +2,19 @@ from fastapi import WebSocket, WebSocketDisconnect
 from typing import Optional
 import json
 from datetime import datetime
-from .connection_manager import manager
-from ..services.firebase_service import FirebaseService
-from ..services.ai_service import ai_service
-from ..services.auth_service import AuthService
-from ..core.websocket.spam_protection import spam_protection
-from ..websocket.notification_handler import notification_handler
 import logging
 
+from src.backend.websocket.connection_manager import manager
+
+from src.backend.services.firebase_service import FirebaseService
+from src.backend.services.ai_service import ai_service
+from src.backend.services.auth_service import AuthService
+
+from src.backend.core.websocket.spam_protection import spam_protection
+
+from src.backend.websocket.notification_handler import notification_handler
+
+logger = logging.getLogger(__name__)
 logger = logging.getLogger(__name__)
 
 class ChatHandler:
@@ -104,6 +109,13 @@ class ChatHandler:
             
             elif message_type == "ai_query":
                 await ChatHandler.handle_ai_query(data, sender_id)
+            
+            elif message_type in ("ping", "heartbeat"):
+                # Keep-alive ping/heartbeat
+                await manager.send_personal_message({
+                    "type": "pong" if message_type == "ping" else "heartbeat_ack",
+                    "timestamp": datetime.utcnow().isoformat()
+                }, sender_id)
             
             else:
                 print(f"Unknown message type: {message_type}")

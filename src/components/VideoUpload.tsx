@@ -5,6 +5,7 @@ import { Progress } from './ui/progress';
 import { toast } from 'sonner';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '../lib/firebase';
+import { uploadVideo as uploadCloudinaryVideo } from '../lib/cloudinary';
 
 interface VideoUploadProps {
   onVideoUploaded?: (videoUrl: string, thumbnailUrl: string, duration: number) => void;
@@ -94,61 +95,26 @@ export function VideoUpload({
 
     try {
       setUploading(true);
+      setUploadProgress(20); // Fake progress for REST API start
       
-      // Upload video
-      const timestamp = Date.now();
-      const videoPath = `videos/${timestamp}_${videoFile.name}`;
-      const videoStorageRef = ref(storage, videoPath);
-      const uploadTask = uploadBytesResumable(videoStorageRef, videoFile);
-
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(progress);
-        },
-        (error) => {
-          console.error('Upload error:', error);
-          toast.error('Failed to upload video');
-          setUploading(false);
-        },
-        async () => {
-          // Get download URL
-          const videoUrl = await getDownloadURL(uploadTask.snapshot.ref);
-          
-          // Generate and upload thumbnail
-          const video = videoRef.current;
-          if (video) {
-            video.currentTime = 1; // Capture frame at 1 second
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            
-            if (ctx) {
-              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-              
-              canvas.toBlob(async (blob) => {
-                if (blob) {
-                  const thumbnailPath = `thumbnails/${timestamp}_thumbnail.jpg`;
-                  const thumbnailRef = ref(storage, thumbnailPath);
-                  await uploadBytesResumable(thumbnailRef, blob);
-                  const thumbnailUrl = await getDownloadURL(thumbnailRef);
-                  
-                  onVideoUploaded?.(videoUrl, thumbnailUrl, video.duration);
-                  onUpload?.(videoUrl, thumbnailUrl);
-                  toast.success('Video uploaded successfully!');
-                  resetUpload();
-                }
-              }, 'image/jpeg', 0.8);
-            }
-          }
-          
-          setUploading(false);
-        }
-      );
+      const uploadResult = await uploadCloudinaryVideo(videoFile);
+      setUploadProgress(80);
+      
+      const videoUrl = uploadResult.secure_url;
+      // Cloudinary automatically generates thumbnails by changing the extension to .jpg
+      const thumbnailUrl = videoUrl.replace(/\.[^/.]+$/, ".jpg");
+      
+      const video = videoRef.current;
+      const duration = video ? video.duration : 0;
+      
+      setUploadProgress(100);
+      
+      onVideoUploaded?.(videoUrl, thumbnailUrl, duration);
+      onUpload?.(videoUrl, thumbnailUrl);
+      toast.success('Video uploaded successfully!');
+      resetUpload();
+      
+      setUploading(false);
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Failed to upload video');

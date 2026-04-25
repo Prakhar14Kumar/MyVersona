@@ -1,5 +1,5 @@
 /**
- * VerSona Configuration
+ * MyVerSona Configuration
  * Centralized configuration for API endpoints and environment variables
  */
 
@@ -14,14 +14,14 @@ const getEnvVar = (key: string, fallback: string = ''): string => {
 
 // API Configuration
 export const API_CONFIG = {
-  // Backend API URL
-  BACKEND_URL: getEnvVar('VITE_BACKEND_URL', 'http://localhost:8000'),
+  // Backend API URL - Appending /api/v1 to match backend route prefix
+  BACKEND_URL: `${getEnvVar('VITE_BACKEND_URL', 'http://localhost:8000')}/api/v1`,
   
   // AI Backend URL
   AI_BACKEND_URL: getEnvVar('VITE_AI_BACKEND_URL', 'http://localhost:8001'),
   
   // Legacy support for VITE_API_URL
-  API_URL: getEnvVar('VITE_API_URL', getEnvVar('VITE_BACKEND_URL', 'http://localhost:8000')),
+  API_URL: `${getEnvVar('VITE_API_URL', getEnvVar('VITE_BACKEND_URL', 'http://localhost:8000'))}/api/v1`,
   
   // Legacy support for VITE_AI_API_URL
   AI_API_URL: getEnvVar('VITE_AI_API_URL', getEnvVar('VITE_AI_BACKEND_URL', 'http://localhost:8001')),
@@ -105,3 +105,21 @@ export const CONFIG = {
 } as const;
 
 export default CONFIG;
+
+/**
+ * Check if the FastAPI backend is reachable.
+ * Uses the lightweight /ready endpoint (no auth required).
+ * Safe to call before initializing feeds or WebSockets.
+ */
+export const checkBackendAvailability = async (): Promise<boolean> => {
+  try {
+    const baseUrl = getEnvVar('VITE_BACKEND_URL', 'http://localhost:8000');
+    const response = await fetch(`${baseUrl}/ready`, {
+      method: 'GET',
+      signal: AbortSignal.timeout(3000), // 3 second timeout
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+};

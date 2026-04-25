@@ -1,4 +1,4 @@
-# VerSona Backend - Architecture Diagrams
+# MyVerSona Backend - Architecture Diagrams
 
 ## 🏗️ Layered Architecture Overview
 
@@ -528,4 +528,4 @@ async def test_get_user_profile_endpoint():
 
 ---
 
-This architecture provides a solid foundation for scaling VerSona to millions of users while keeping the codebase maintainable and testable! 🚀
+This architecture provides a solid foundation for scaling MyVerSona to millions of users while keeping the codebase maintainable and testable! 🚀

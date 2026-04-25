@@ -1,4 +1,4 @@
-# 📚 VerSona Refactoring Documentation Index
+# 📚 MyVerSona Refactoring Documentation Index
 
 **This folder contains all documentation related to project structure refactoring.**
 

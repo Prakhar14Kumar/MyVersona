@@ -1,4 +1,4 @@
-# VerSona Security Policy
+# MyVerSona Security Policy
 **ISO/IEC 27001 Compliant**
 
 **Version**: 1.0  
@@ -11,11 +11,11 @@
 ## 1. Introduction
 
 ### 1.1 Purpose
-This Security Policy establishes the framework for protecting VerSona's information assets, user data, and systems from unauthorized access, disclosure, modification, or destruction.
+This Security Policy establishes the framework for protecting MyVerSona's information assets, user data, and systems from unauthorized access, disclosure, modification, or destruction.
 
 ### 1.2 Scope
 This policy applies to:
-- All VerSona employees and contractors
+- All MyVerSona employees and contractors
 - All systems and applications
 - All user data and business information
 - All third-party integrations

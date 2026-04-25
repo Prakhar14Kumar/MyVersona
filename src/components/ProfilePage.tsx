@@ -26,7 +26,9 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
-  increment
+  increment,
+  addDoc,
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { Post, UserProfile } from '../types';
@@ -142,8 +144,40 @@ export function ProfilePage() {
   };
 
   // Handle message
-  const handleMessage = () => {
-    navigate(`/chat?user=${profileUserId}`);
+  const handleMessage = async () => {
+    if (!user?.uid || !profileUserId) return;
+    try {
+      // Find existing chat
+      const chatsRef = collection(db, 'chats');
+      const q = query(chatsRef, where('participants', 'array-contains', user.uid));
+      const snapshot = await getDocs(q);
+      
+      let existingChatId = null;
+      for (const docSnap of snapshot.docs) {
+        const participants = docSnap.data().participants || [];
+        if (participants.includes(profileUserId)) {
+          existingChatId = docSnap.id;
+          break;
+        }
+      }
+
+      if (existingChatId) {
+        navigate('/chat', { state: { chatId: existingChatId } });
+      } else {
+        // Create new chat
+        const newChatRef = await addDoc(collection(db, 'chats'), {
+          participants: [user.uid, profileUserId],
+          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
+          lastMessage: '',
+          chat_type: 'casual'
+        });
+        navigate('/chat', { state: { chatId: newChatRef.id } });
+      }
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      toast.error('Failed to start conversation');
+    }
   };
 
   // Handle share profile
@@ -152,7 +186,7 @@ export function ProfilePage() {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `${profile?.displayName || 'User'}'s Profile on VerSona`,
+          title: `${profile?.displayName || 'User'}'s Profile on MyVerSona`,
           url: profileUrl
         });
       } else {

@@ -1,5 +1,5 @@
 /**
- * VerSona API Service
+ * MyVerSona API Service
  * Centralized API client with retry logic, circuit breaker, and network optimization
  */
 

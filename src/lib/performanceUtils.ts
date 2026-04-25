@@ -1,5 +1,5 @@
 /**
- * Performance Optimization Utilities for VerSona
+ * Performance Optimization Utilities for MyVerSona
  * Provides caching, memoization, and performance monitoring helpers
  */
 

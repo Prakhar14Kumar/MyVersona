@@ -24,6 +24,7 @@ class UserProfile(BaseModel):
     avatar_url: Optional[str] = None
     cover_url: Optional[str] = None
     phone: Optional[str] = None
+    public_key: Optional[str] = None
     
     # Professional Info
     college_name: Optional[str] = None
@@ -63,6 +64,7 @@ class UserUpdate(BaseModel):
     avatar_url: Optional[str] = None
     cover_url: Optional[str] = None
     phone: Optional[str] = None
+    public_key: Optional[str] = None
     college_name: Optional[str] = None
     college_hashtag: Optional[str] = None
     branch: Optional[str] = None

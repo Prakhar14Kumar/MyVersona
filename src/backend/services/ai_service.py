@@ -1,6 +1,8 @@
 import google.generativeai as genai
 from typing import Optional, List
-from ..config import settings
+from config import settings
+import os
+import lightgbm as lgb
 
 class AIService:
     """AI service for career assistance, content moderation, and recommendations"""
@@ -8,9 +10,17 @@ class AIService:
     def __init__(self):
         if settings.GEMINI_API_KEY:
             genai.configure(api_key=settings.GEMINI_API_KEY)
-            self.model = genai.GenerativeModel('gemini-pro')
+            self.model = genai.GenerativeModel('gemini-1.5-flash')
         else:
             self.model = None
+            
+        # Load LightGBM connection ranker model
+        model_path = os.path.join(os.path.dirname(__file__), "..", "models", "connection_ranker.txt")
+        try:
+            self.lgb_ranker = lgb.Booster(model_file=model_path)
+        except Exception as e:
+            print(f"Failed to load LightGBM model: {e}")
+            self.lgb_ranker = None
     
     async def get_career_advice(self, query: str, user_context: Optional[dict] = None) -> str:
         """Get career advice from AI"""
@@ -47,7 +57,7 @@ Please provide a detailed and actionable response."""
     async def moderate_content(self, content: str) -> dict:
         """Moderate content for spam, hate speech, etc."""
         if not self.model:
-            return {"is_appropriate": True, "reason": None, "flagged": False}
+            return {"is_appropriate": True, "reason": None, "category": None, "confidence": None, "flagged": False}
         
         try:
             prompt = f"""Analyze the following content for policy violations:
@@ -71,11 +81,33 @@ REASON: brief explanation (or "none" if safe)"""
             response = self.model.generate_content(prompt)
             result_text = response.text.strip()
             
-            lines = result_text.split("\n")
-            is_safe = "yes" in lines[0].lower()
-            category = lines[1].split(":")[1].strip().lower() if len(lines) > 1 else "none"
-            confidence = lines[2].split(":")[1].strip().lower() if len(lines) > 2 else "low"
-            reason = lines[3].split(":", 1)[1].strip() if len(lines) > 3 else None
+            lines = [line.strip() for line in result_text.split("\n") if line.strip()]
+            
+            # Safe defaults
+            is_safe = True
+            category = "none"
+            confidence = "low"
+            reason = None
+
+            # Defensive parsing
+            for line in lines:
+                lower_line = line.lower()
+                if lower_line.startswith("safe:"):
+                    is_safe = "yes" in lower_line
+                elif lower_line.startswith("category:"):
+                    parts = line.split(":", 1)
+                    if len(parts) > 1:
+                        category = parts[1].strip().lower()
+                elif lower_line.startswith("confidence:"):
+                    parts = line.split(":", 1)
+                    if len(parts) > 1:
+                        confidence = parts[1].strip().lower()
+                elif lower_line.startswith("reason:"):
+                    parts = line.split(":", 1)
+                    if len(parts) > 1:
+                        reason = parts[1].strip()
+                        if reason.lower() == "none":
+                            reason = None
             
             return {
                 "is_appropriate": is_safe,
@@ -86,12 +118,13 @@ REASON: brief explanation (or "none" if safe)"""
             }
         except Exception as e:
             print(f"Content moderation error: {e}")
-            # Fallback: allow content but log error
+            # Fallback: allow content completely without undocumented error keys
             return {
                 "is_appropriate": True,
                 "reason": None,
-                "flagged": False,
-                "error": "moderation_failed"
+                "category": None,
+                "confidence": None,
+                "flagged": False
             }
     
     async def generate_hashtags(self, content: str, max_tags: int = 5) -> List[str]:
@@ -140,40 +173,41 @@ Format the response as JSON."""
             return {}
     
     async def recommend_connections(self, user_profile: dict, potential_connections: List[dict]) -> List[str]:
-        """Recommend connections based on user profile"""
-        if not self.model or not potential_connections:
+        """Recommend connections based on user profile using LightGBM ranker"""
+        if not potential_connections:
+            return []
+            
+        if not getattr(self, 'lgb_ranker', None):
+            # Fallback if model isn't loaded
             return [conn["uid"] for conn in potential_connections[:5]]
-        
+            
         try:
-            user_info = f"""
-User: {user_profile.get('full_name')}
-College: {user_profile.get('college_name', 'N/A')}
-Branch: {user_profile.get('branch', 'N/A')}
-Skills: {', '.join(user_profile.get('skills', []))}
-Interests: {', '.join(user_profile.get('interests', []))}
-"""
+            user_college = user_profile.get('college_name', '')
+            user_branch = user_profile.get('branch', '')
+            user_skills = set(user_profile.get('skills', []))
+            user_interests = set(user_profile.get('interests', []))
             
-            connections_info = "\n".join([
-                f"{i+1}. {conn.get('full_name')} - {conn.get('college_name', 'N/A')} - {conn.get('branch', 'N/A')}"
-                for i, conn in enumerate(potential_connections[:20])
-            ])
+            features = []
+            for conn in potential_connections:
+                same_college = 1 if user_college and user_college == conn.get('college_name', '') else 0
+                same_branch = 1 if user_branch and user_branch == conn.get('branch', '') else 0
+                shared_skills = len(user_skills & set(conn.get('skills', [])))
+                shared_interests = len(user_interests & set(conn.get('interests', [])))
+                features.append([same_college, same_branch, shared_skills, shared_interests])
+                
+            # Predict scores using LightGBM
+            scores = self.lgb_ranker.predict(features)
             
-            prompt = f"""Recommend the top 5 connections for this user from the list below.
-Consider: similar colleges, branches, skills, and interests.
-
-{user_info}
-
-Potential Connections:
-{connections_info}
-
-Return only the numbers (1-20) of the top 5 recommendations, separated by commas."""
+            # Pair connections with scores and sort descending
+            scored_connections = list(zip(potential_connections, scores))
+            scored_connections.sort(key=lambda x: x[1], reverse=True)
             
-            response = self.model.generate_content(prompt)
-            indices = [int(x.strip()) - 1 for x in response.text.strip().split(",") if x.strip().isdigit()]
+            # Return top 5 UIDs
+            top_connections = [conn[0]["uid"] for conn in scored_connections[:5]]
+            return top_connections
             
-            return [potential_connections[i]["uid"] for i in indices if i < len(potential_connections)]
         except Exception as e:
-            print(f"Connection recommendation error: {e}")
+            print(f"Connection recommendation error (LightGBM): {e}")
             return [conn["uid"] for conn in potential_connections[:5]]
 
     async def rewrite_professional(self, content: str) -> str:

@@ -5,9 +5,10 @@ import { Textarea } from "./ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Card, CardContent } from "./ui/card";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
-import { uploadPostImage, createPost as createFirestorePost } from "../lib/firestoreService";
+import { createPost as createFirestorePost } from "../lib/firestoreService";
+import { uploadImage } from "../lib/cloudinary";
 import { backendService } from "../lib/backendService";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { VideoUpload } from "./VideoUpload";
 import { AIContentTools } from "./AIContentTools";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
@@ -111,10 +112,11 @@ export function CreatePost({ user, userCollege, onPostCreated }: CreatePostProps
       // Upload image if present
       if (imageFile) {
         try {
-          imageUrl = await uploadPostImage(user.uid, imageFile);
+          const uploadResult = await uploadImage(imageFile);
+          imageUrl = uploadResult.secure_url;
         } catch (uploadError) {
           console.error("Image upload error:", uploadError);
-          toast.error("Failed to upload image");
+          toast.error("Failed to upload image to Cloudinary");
           setIsSubmitting(false);
           return;
         }
@@ -125,46 +127,30 @@ export function CreatePost({ user, userCollege, onPostCreated }: CreatePostProps
       // Get user profile for college info
       const userCollegeName = userProfile?.college || null;
 
-      // Create post in Firestore with all required fields
-      const postId = await createFirestorePost({
-        userId: user.uid,
-        userName: user.displayName,
-        userAvatar: user.photoURL || "",
-        userCollege: userCollegeName,
-        content: content.trim(),
-        image: finalMediaUrl,
-        type: postType,
-      });
-
-      // Update user's post count atomically
-      try {
-        const userRef = doc(db, "users", user.uid);
-        const updateData: any = {
-          postsCount: increment(1),
-        };
-        
-        // If career post, also increment career posts count
-        if (postType === "career") {
-          updateData.careerPostsCount = increment(1);
-        }
-        
-        await updateDoc(userRef, updateData);
-      } catch (countError) {
-        console.error("Failed to update post count:", countError);
-      }
-
-      // Also call backend service for additional processing (ML models, notifications, etc.)
+      // Call backend service for post creation and ML processing
       try {
         const hashtags = (content.match(/#[a-z0-9_]+/gi) || []).map(tag => tag.slice(1));
-        await backendService.createPost(
+        const newPost = await backendService.createPost(
           content.trim(),
           postType,
           hashtags,
           finalMediaUrl,
           imageUrl ? "image" : videoUrl ? "video" : "none"
         );
-      } catch (backendError) {
-        console.error("Backend service error (non-critical):", backendError);
+        
+        // Wait for backend to return the created post id
+        const postId = newPost.id;
+        
+        // Track post created event
+        if (postId) {
+          trackPostCreated(user.uid, postId, postType);
+        }
+      } catch (backendError: any) {
+        console.error("Backend service error:", backendError);
+        const errorMsg = backendError.response?.data?.error || backendError.message || "Failed to create post";
+        toast.error(`Error: ${errorMsg}`);
+        setIsSubmitting(false);
+        return;
       }
 
       // Reset form
@@ -178,16 +164,13 @@ export function CreatePost({ user, userCollege, onPostCreated }: CreatePostProps
       }
 
       toast.success("Post created successfully!");
-      
-      // Track post created event
-      trackPostCreated(user.uid, postId, postType);
-      
+
       if (onPostCreated) {
         onPostCreated();
       }
     } catch (error: any) {
       console.error("Create post error:", error);
-      
+
       // Log error with context
       handleError(error, {
         userId: user.uid,

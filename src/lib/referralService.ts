@@ -1,4 +1,4 @@
-// Referral Service for VerSona
+// Referral Service for MyVerSona
 import { doc, setDoc, getDoc, query, collection, where, getDocs, updateDoc } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -166,7 +166,7 @@ export const getReferralStats = async (userId: string): Promise<{
 
 // Generate shareable referral text
 export const generateShareText = (referralCode: string): string => {
-  return `Join me on VerSona 🚀 - India's first youth-focused social & professional network!\n\nUse my code: ${referralCode}\n\nConnect with college friends, build your career, and grow together! 🇮🇳`;
+  return `Join me on MyVerSona 🚀 - India's first youth-focused social & professional network!\n\nUse my code: ${referralCode}\n\nConnect with college friends, build your career, and grow together! 🇮🇳`;
 };
 
 // Share via Web Share API (if available)
@@ -176,7 +176,7 @@ export const shareReferralCode = async (referralCode: string): Promise<boolean> 
   if (navigator.share) {
     try {
       await navigator.share({
-        title: 'Join VerSona',
+        title: 'Join MyVerSona',
         text: shareText,
       });
       return true;
