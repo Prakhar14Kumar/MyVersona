@@ -206,115 +206,11 @@ export function FeedPage({ onNavigate }: FeedPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background flex overflow-x-hidden">
-      {/* LEFT SIDEBAR */}
-
-      <aside className="hidden lg:flex w-64 fixed left-0 top-0 h-full bg-white border-r border-border flex-col shadow-sm z-40">
-        {/* LOGO */}
-
-        <div
-          className="p-6 border-b flex items-center gap-3 cursor-pointer"
-          onClick={() => handleNavigation("home")}
-        >
-          <img
-            src="/logo.jpg"
-            alt="MyVerSona"
-            className="h-9 w-9 rounded-xl object-cover shadow-md"
-          />
-
-          <h1 className="text-xl font-bold bg-gradient-to-r from-[#FFB88C] via-[#FF6F91] to-[#6DE7C5] bg-clip-text text-transparent">
-            MyVerSona
-          </h1>
-        </div>
-
-        {/* PROFILE CARD */}
-
-        <div className="p-4 border-b">
-          <button
-            onClick={() => handleNavigation("settings")}
-            className="w-full flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-[#FFB88C]/5 via-[#FF6F91]/5 to-[#6DE7C5]/5 hover:shadow-md transition-all"
-          >
-            <Avatar className="h-12 w-12 border-2 border-white shadow-md">
-              <AvatarImage
-                src={userProfile?.photoURL || user?.photoURL || ""}
-              />
-
-              <AvatarFallback>
-                {user?.displayName?.charAt(0).toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
-
-            <div className="text-left flex-1 min-w-0">
-              <p className="truncate font-medium">
-                {user?.displayName || "User"}
-              </p>
-
-              <p className="text-xs text-[#FF6F91] truncate mt-1">
-                {userProfile?.college
-                  ? `#${userProfile.college
-                    .toLowerCase()
-                    .replace(/\s+/g, "")}`
-                  : "#student"}
-              </p>
-            </div>
-          </button>
-        </div>
-
-        {/* NAVIGATION */}
-
-        <nav className="flex-1 p-3 space-y-2 overflow-y-auto">
-          {sidebarItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activePage === item.id;
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleNavigation(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
-                  ? "bg-gradient-to-r from-[#FFB88C]/10 via-[#FF6F91]/10 to-[#6DE7C5]/10 text-[#FF6F91] shadow-sm"
-                  : "hover:bg-accent"
-                  }`}
-              >
-                <Icon className="h-5 w-5 flex-shrink-0" />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* FOOTER */}
-
-        <div className="p-4 border-t space-y-3">
-          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-            <span className="text-lg">🇮🇳</span>
-            <span>Made in India</span>
-          </div>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={async () => {
-              await signOut();
-
-              if (onNavigate) {
-                onNavigate("landing");
-              } else {
-                navigate("/");
-              }
-            }}
-          >
-            Logout
-          </Button>
-        </div>
-      </aside>
-
-      {/* MAIN CONTENT */}
-
-      <main className="flex-1 lg:ml-64 xl:mr-80 min-w-0">
+    <>
+      <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
         {/* HEADER */}
 
-        <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-border">
+        <header className="shrink-0 z-30 bg-white/80 backdrop-blur-md border-b border-border">
           <div className="p-4 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               {/* SEARCH */}
@@ -379,11 +275,13 @@ export function FeedPage({ onNavigate }: FeedPageProps) {
               </Tabs>
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* POSTS */}
-
-        <div className="p-3 sm:p-5 lg:p-6 max-w-2xl mx-auto space-y-6 pb-24 lg:pb-6">
+        {/* SCROLLABLE FEED AREA */}
+        <div className="flex-1 overflow-y-auto scroll-smooth w-full flex justify-center">
+          <div className="flex-1 min-w-0 max-w-2xl">
+            {/* POSTS */}
+            <div className="p-3 sm:p-5 lg:p-6 space-y-6 pb-24 lg:pb-6">
           {loading ? (
             <div className="space-y-6 animate-in fade-in duration-500">
               <PostSkeleton />
@@ -428,11 +326,11 @@ export function FeedPage({ onNavigate }: FeedPageProps) {
             </div>
           )}
         </div>
-      </main>
+      </div>
 
       {/* RIGHT SIDEBAR */}
 
-      <aside className="hidden xl:block w-80 fixed right-0 top-0 h-full bg-slate-50/60 border-l border-slate-200 overflow-y-auto backdrop-blur-sm">
+      <aside className="hidden xl:block shrink-0 w-80 h-full bg-slate-50/60 border-l border-slate-200 overflow-y-auto backdrop-blur-sm">
         <div className="relative min-h-full p-6 overflow-hidden">
           {/* GLOW EFFECTS */}
 
@@ -498,27 +396,6 @@ export function FeedPage({ onNavigate }: FeedPageProps) {
         </div>
       </aside>
 
-      {/* MOBILE NAVIGATION */}
-
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-lg">
-        <div className="grid grid-cols-5 h-16">
-          {sidebarItems.slice(0, 5).map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleNavigation(item.id)}
-                className="flex flex-col items-center justify-center gap-1 text-xs text-muted-foreground hover:text-[#FF6F91] transition-colors"
-              >
-                <Icon className="h-5 w-5" />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* CREATE POST DIALOG */}
 
       <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
@@ -546,6 +423,8 @@ export function FeedPage({ onNavigate }: FeedPageProps) {
       {/* FEEDBACK BUTTON */}
 
       <FeedbackButton currentPage="feed" />
-    </div>
+        </div>
+      </div>
+    </>
   );
 }

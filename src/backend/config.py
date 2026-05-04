@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     # Gemini AI
     GEMINI_API_KEY: Optional[str] = None
 
+    # Algolia Search
+    ALGOLIA_APP_ID: Optional[str] = None
+    ALGOLIA_SEARCH_KEY: Optional[str] = None
+    ALGOLIA_ADMIN_KEY: Optional[str] = None
+
     # Redis
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379

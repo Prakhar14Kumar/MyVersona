@@ -10,7 +10,7 @@ import { Card } from './ui/card';
 import { toast } from 'sonner@2.0.3';
 import { backendService } from '../lib/backendService';
 import { EmptyState } from './EmptyState';
-import { debounce } from '../utils/debounce';
+import { searchUsers, searchPosts, searchHashtags, searchInsights } from '../lib/algolia';
 
 interface SearchResult {
   id: string;
@@ -60,12 +60,33 @@ export function SearchPage() {
     saveRecentSearch(query);
 
     try {
-      // --- Week 2: Combined Search ---
-      const { users, posts } = await backendService.combinedSearch(query);
+      // Fetch trending hashtags if empty query or use Algolia for search
+      let fetchedUsers = [];
+      let fetchedPosts = [];
+      let fetchedHashtags = [];
+
+      try {
+        const [usersRes, postsRes, hashtagsRes] = await Promise.all([
+          searchUsers(query),
+          searchPosts(query),
+          searchHashtags(query)
+        ]);
+
+        fetchedUsers = usersRes?.hits || [];
+        fetchedPosts = postsRes?.hits || [];
+        fetchedHashtags = hashtagsRes?.hits || [];
+      } catch (err) {
+        // Fallback to backend hybrid search if Algolia fails or isn't set up
+        console.warn("Algolia search failed, falling back to backend", err);
+        const { users, posts } = await backendService.combinedSearch(query);
+        fetchedUsers = users;
+        fetchedPosts = posts;
+      }
       
       const allResults: SearchResult[] = [
-        ...users.map(u => ({ id: u.uid, type: 'user' as const, data: u })),
-        ...posts.map(p => ({ id: p.id, type: 'post' as const, data: p }))
+        ...fetchedUsers.map(u => ({ id: u.uid || u.objectID, type: 'user' as const, data: u })),
+        ...fetchedPosts.map(p => ({ id: p.id || p.objectID, type: 'post' as const, data: p })),
+        ...fetchedHashtags.map(h => ({ id: h.tag || h.objectID, type: 'hashtag' as const, data: h }))
       ];
 
       setResults(allResults);
@@ -84,16 +105,24 @@ export function SearchPage() {
       } else {
         setResults([]);
       }
-    }, 400);
+    }, 300);
 
     return () => clearTimeout(debounceTimeout);
   }, [searchQuery]);
 
   const renderUserResult = (data: any) => (
     <Card
-      key={data.uid || data.id}
+      key={data.uid || data.id || data.objectID}
       className="p-4 cursor-pointer hover:bg-gray-50 transition-colors border-[#6DE7C5]/20"
-      onClick={() => navigate(`/profile/${data.uid || data.id}`)}
+      onClick={() => {
+        searchInsights('clickedObjectIDsAfterSearch', {
+          index: 'users',
+          eventName: 'User Clicked',
+          queryID: data.__queryID,
+          objectIDs: [data.objectID]
+        });
+        navigate(`/profile/${data.uid || data.id || data.objectID}`);
+      }}
     >
       <div className="flex items-center gap-3">
         <Avatar className="w-12 h-12 border-2 border-[#FF6F91]/20">
@@ -119,9 +148,17 @@ export function SearchPage() {
 
   const renderPostResult = (data: any) => (
     <Card
-      key={data.id}
+      key={data.id || data.objectID}
       className="p-4 cursor-pointer hover:bg-gray-50 transition-colors border-[#FFB88C]/20"
-      onClick={() => navigate(`post-${data.id}`)}
+      onClick={() => {
+        searchInsights('clickedObjectIDsAfterSearch', {
+          index: 'posts',
+          eventName: 'Post Clicked',
+          queryID: data.__queryID,
+          objectIDs: [data.objectID]
+        });
+        navigate(`post-${data.id || data.objectID}`);
+      }}
     >
       <div className="flex gap-3">
         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">

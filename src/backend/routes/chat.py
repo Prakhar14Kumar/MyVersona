@@ -128,3 +128,17 @@ async def ai_ask(
     """Ask AI assistant for chat help"""
     response = await ai_service.ask_ai_assistant(query.query)
     return {"response": response, "sources": None}
+
+from src.backend.services.postgres_chat_service import PostgresChatService
+
+@router.get("/history/{conversation_id}")
+async def get_chat_history(
+    conversation_id: str, 
+    limit: int = Query(50, ge=1, le=200), 
+    offset: int = Query(0, ge=0),
+    user_id: str = Depends(auth_get_current_user_id)
+):
+    """Get Postgres chat history"""
+    messages = await PostgresChatService.get_chat_history(conversation_id, limit, offset)
+    return {"success": True, "data": messages}
+

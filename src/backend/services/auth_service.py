@@ -30,4 +30,16 @@ class AuthService:
             return None
         
         user = await FirebaseService.get_user(user_id)
+        
+        # --- Sync user to PostgreSQL for Chat Search ---
+        if user:
+            from .postgres_user_service import PostgresUserService
+            try:
+                name = user.get("full_name") or user.get("displayName") or user.get("username") or "Unknown"
+                email = user.get("email") or payload.get("email") or "unknown@email.com"
+                college = user.get("college")
+                await PostgresUserService.upsert_user(user_id, name, email, college)
+            except Exception as e:
+                print(f"Failed to sync user to Postgres: {e}")
+                
         return user

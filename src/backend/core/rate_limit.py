@@ -1,28 +1,33 @@
 from fastapi import Request, HTTPException
-from starlette.middleware.base import BaseHTTPMiddleware
 from datetime import datetime, timedelta
 from collections import defaultdict
 import asyncio
 from typing import Dict, Tuple
 
-class RateLimitMiddleware(BaseHTTPMiddleware):
+class RateLimitMiddleware:
     """
     Production-grade rate limiting middleware
     Uses in-memory storage (for production, use Redis)
     """
     
     def __init__(self, app):
-        super().__init__(app)
+        self.app = app
         # Store: {ip_address: {endpoint: [(timestamp, count)]}}
         self.requests: Dict[str, Dict[str, list]] = defaultdict(lambda: defaultdict(list))
         self.cleanup_task = None
     
-    async def dispatch(self, request: Request, call_next):
+    async def __call__(self, scope, receive, send):
+        # We only rate limit HTTP requests
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
         # Get client IP
-        client_ip = request.client.host if request.client else "unknown"
+        client = scope.get("client")
+        client_ip = client[0] if client else "unknown"
         
         # Get endpoint path
-        path = request.url.path
+        path = scope.get("path", "")
         
         # Define rate limits per endpoint
         rate_limits = self._get_rate_limit(path)
@@ -32,22 +37,28 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             
             # Check rate limit
             if not self._check_rate_limit(client_ip, path, limit, window):
-                raise HTTPException(
-                    status_code=429,
-                    detail={
-                        "success": False,
-                        "error": "Rate limit exceeded. Please try again later."
-                    }
-                )
-        
-        # Process request
-        response = await call_next(request)
+                # Send 429 response directly
+                body = b'{"success": false, "error": "Rate limit exceeded. Please try again later."}'
+                await send({
+                    "type": "http.response.start",
+                    "status": 429,
+                    "headers": [
+                        (b"content-type", b"application/json"),
+                        (b"content-length", str(len(body)).encode("utf-8")),
+                    ],
+                })
+                await send({
+                    "type": "http.response.body",
+                    "body": body,
+                })
+                return
         
         # Start cleanup task if not running
         if self.cleanup_task is None or self.cleanup_task.done():
             self.cleanup_task = asyncio.create_task(self._cleanup_old_entries())
-        
-        return response
+            
+        # Process request
+        await self.app(scope, receive, send)
     
     def _get_rate_limit(self, path: str) -> Tuple[int, int] | None:
         """

@@ -41,16 +41,16 @@ async def seed_image_posts():
     captions = [
         "Amazing event today! 🚀",
         "Just chilling with friends.",
-        "Hackathon mode: ON 💻",
-        "Beautiful day on campus ☀️",
+        "Hotness at its peakk",
+        "Nights and Lights✨",
         "Networking event was a huge success!",
-        "Learning so much lately. Never stop grinding.",
+        "Love me thodaa orr",
         "Can't believe it's already the end of the semester.",
-        "Building the future, one line of code at a time.",
-        "Coffee and code ☕",
+        "Charlie ke 6 Chaplinss"
+        "Pic with the favv teacher be like",
         "Throwback to last year's fest 🎉",
         "Late night study sessions 📚",
-        "Exploring the city!"
+        "One Code at a time!"
     ]
 
     import shutil

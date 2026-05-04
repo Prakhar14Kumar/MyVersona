@@ -67,6 +67,17 @@ async def startup_event():
     """Initialize services on startup"""
     logger.info("🚀 Starting VerSona Backend...")
     
+    # Initialize Postgres tables
+    from src.backend.core.database import engine, Base
+    import src.backend.models.chat_models # Ensure models are loaded
+    import src.backend.models.user_models # Ensure user models are loaded
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("✅ PostgreSQL tables verified")
+    except Exception as e:
+        logger.error(f"⚠️ Failed to connect to PostgreSQL: {e}")
+    
     # Firebase is already initialized at the top of the file
     if firebase_initialized:
         logger.info("✅ Firebase initialized")
@@ -125,13 +136,13 @@ app.include_router(career.router, prefix=settings.API_V1_PREFIX)
 
 # ==================== WEBSOCKET ENDPOINTS ====================
 
-@app.websocket("/ws/chat/{user_id}")
-async def websocket_chat(websocket: WebSocket, user_id: str):
-    """WebSocket endpoint for real-time chat"""
+@app.websocket("/ws/chat/{receiver_id}")
+async def websocket_chat(websocket: WebSocket, receiver_id: str):
+    """WebSocket endpoint for real-time chat targeting a specific receiver"""
     try:
-        await chat_handler.handle_connection(websocket, user_id)
+        await chat_handler.handle_connection(websocket, receiver_id)
     except Exception as e:
-        logger.error(f"WebSocket chat error: {e}")
+        print(f"❌ WebSocket chat critical error: {e}")
 
 @app.websocket("/ws/notifications/{user_id}")
 async def websocket_notifications(websocket: WebSocket, user_id: str):

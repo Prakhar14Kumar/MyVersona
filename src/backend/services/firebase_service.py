@@ -411,7 +411,7 @@ class FirebaseService:
         """Create or get existing conversation"""
         try:
             # Check if conversation already exists
-            conversations_ref = db.collection("conversations")
+            conversations_ref = db.collection("chats")
             
             # Query for existing conversation with same participants
             query = conversations_ref.where("participants", "array_contains", participants[0]).stream()
@@ -429,13 +429,12 @@ class FirebaseService:
             conversation_doc = {
                 "conversation_id": conversation_id,
                 "participants": participants,
-                "chat_type": chat_type,
-                "last_message": None,
-                "last_message_at": None,
-                "last_sender_id": None,
-                "unread_count": {p: 0 for p in participants},
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow(),
+                "chatType": chat_type,
+                "lastMessage": "",
+                "lastSenderId": None,
+                "unreadCount": {p: 0 for p in participants},
+                "createdAt": datetime.utcnow(),
+                "updatedAt": datetime.utcnow(),
             }
             
             conversation_ref.set(conversation_doc)
@@ -449,7 +448,7 @@ class FirebaseService:
     async def get_conversation(conversation_id: str) -> Optional[dict]:
         """Get conversation by ID"""
         try:
-            conversation_ref = db.collection("conversations").document(conversation_id)
+            conversation_ref = db.collection("chats").document(conversation_id)
             conversation = conversation_ref.get()
             
             if conversation.exists:
@@ -463,10 +462,10 @@ class FirebaseService:
     async def get_user_conversations(user_id: str, limit: int = 20) -> List[dict]:
         """Get all conversations for a user"""
         try:
-            conversations_ref = db.collection("conversations")
+            conversations_ref = db.collection("chats")
             query = conversations_ref\
                 .where("participants", "array_contains", user_id)\
-                .order_by("last_message_at", direction=firestore.Query.DESCENDING)\
+                .order_by("updatedAt", direction=firestore.Query.DESCENDING)\
                 .limit(limit)
             
             conversations = []
@@ -484,7 +483,7 @@ class FirebaseService:
     async def send_message(conversation_id: str, message_data: dict) -> dict:
         """Send message in conversation with transaction"""
         try:
-            conversation_ref = db.collection("conversations").document(conversation_id)
+            conversation_ref = db.collection("chats").document(conversation_id)
             message_id = str(uuid.uuid4())
             message_ref = conversation_ref.collection("messages").document(message_id)
             
@@ -498,13 +497,13 @@ class FirebaseService:
                 "sender_id": message_data["sender_id"],
                 "receiver_id": message_data["receiver_id"],
                 "content": content,
-                "chat_type": message_data.get("chat_type", "casual"),
+                "chatType": message_data.get("chat_type", "casual"),
                 "media_url": message_data.get("media_url"),
                 "media_type": message_data.get("media_type"),
                 "is_read": False,
                 "is_deleted": False,
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow(),
+                "createdAt": datetime.utcnow(),
+                "updatedAt": datetime.utcnow(),
             }
             
             # Use transaction to update conversation and create message
@@ -516,11 +515,10 @@ class FirebaseService:
                 # Update conversation
                 receiver_id = message_data["receiver_id"]
                 transaction.update(conversation_ref, {
-                    "last_message": content[:100],  # Preview
-                    "last_message_at": datetime.utcnow(),
-                    "last_sender_id": message_data["sender_id"],
-                    f"unread_count.{receiver_id}": firestore.Increment(1),
-                    "updated_at": datetime.utcnow(),
+                    "lastMessage": content[:100],  # Preview
+                    "lastSenderId": message_data["sender_id"],
+                    f"unreadCount.{receiver_id}": firestore.Increment(1),
+                    "updatedAt": datetime.utcnow(),
                 })
             
             transaction = db.transaction()
@@ -536,9 +534,9 @@ class FirebaseService:
     async def get_messages(conversation_id: str, limit: int = 50, cursor: Optional[str] = None) -> tuple[List[dict], Optional[str]]:
         """Get messages with cursor pagination"""
         try:
-            conversation_ref = db.collection("conversations").document(conversation_id)
+            conversation_ref = db.collection("chats").document(conversation_id)
             query = conversation_ref.collection("messages")\
-                .order_by("created_at", direction=firestore.Query.ASCENDING)\
+                .order_by("createdAt", direction=firestore.Query.ASCENDING)\
                 .limit(limit + 1)
             
             if cursor:
@@ -564,7 +562,7 @@ class FirebaseService:
     async def mark_messages_as_read(conversation_id: str, user_id: str) -> bool:
         """Mark all messages as read for a user"""
         try:
-            conversation_ref = db.collection("conversations").document(conversation_id)
+            conversation_ref = db.collection("chats").document(conversation_id)
             messages_ref = conversation_ref.collection("messages")
             
             # Get unread messages for this user
@@ -579,7 +577,7 @@ class FirebaseService:
                 count += 1
             
             # Reset unread count
-            batch.update(conversation_ref, {f"unread_count.{user_id}": 0})
+            batch.update(conversation_ref, {f"unreadCount.{user_id}": 0})
             
             batch.commit()
             logger.info(f"Marked {count} messages as read for user {user_id} in conversation {conversation_id}")

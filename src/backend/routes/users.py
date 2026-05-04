@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException, Header, Query, UploadFile, File, Depends
+from fastapi import APIRouter, HTTPException, Header, Query, UploadFile, File, Depends, BackgroundTasks
 from pydantic import BaseModel
 from typing import Optional, List
 from models.user import UserProfile, UserUpdate
 from services.firebase_service import FirebaseService
 from services.auth_service import AuthService
 from services.file_validator import FileValidator
+from services.algolia_service import algolia_service
 from firebase_admin import storage
 import uuid
 from core.dependencies import get_current_user_id as auth_get_current_user_id
@@ -39,6 +40,7 @@ async def get_my_profile(user_id: str = Depends(auth_get_current_user_id)):
 @router.put("/me", response_model=UserProfile)
 async def update_my_profile(
     updates: UserUpdate,
+    background_tasks: BackgroundTasks,
     user_id: str = Depends(auth_get_current_user_id)
 ):
     """Update current user's profile"""
@@ -52,7 +54,22 @@ async def update_my_profile(
             raise HTTPException(status_code=400, detail="Username already taken")
     
     updated_user = await FirebaseService.update_user(user_id, update_data)
+    
+    # Sync to Algolia
+    background_tasks.add_task(algolia_service.sync_user_profile, user_id, updated_user)
+    
     return updated_user
+
+from src.backend.services.postgres_user_service import PostgresUserService
+
+@router.get("/chat-search")
+async def chat_user_search(
+    query: str = Query(..., min_length=1),
+    user_id: str = Depends(auth_get_current_user_id)
+):
+    """Fast PostgreSQL ILIKE search for Chat"""
+    users = await PostgresUserService.search_users(query, user_id)
+    return {"success": True, "data": users}
 
 @router.get("/{username}", response_model=UserProfile)
 async def get_user_profile(
@@ -115,6 +132,7 @@ async def unfollow_user(
 @router.post("/upload-avatar")
 async def upload_avatar(
     file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     user_id: str = Depends(auth_get_current_user_id)
 ):
     """Upload user avatar"""
@@ -140,7 +158,10 @@ async def upload_avatar(
         url = blob.public_url
         
         # Update user profile
-        await FirebaseService.update_user(user_id, {"avatar_url": url})
+        updated_user = await FirebaseService.update_user(user_id, {"avatar_url": url})
+        
+        # Sync to Algolia
+        background_tasks.add_task(algolia_service.sync_user_profile, user_id, updated_user)
         
         return {"url": url}
     except Exception as e:
@@ -149,6 +170,7 @@ async def upload_avatar(
 @router.post("/upload-cover")
 async def upload_cover(
     file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     user_id: str = Depends(auth_get_current_user_id)
 ):
     """Upload user cover image"""
@@ -174,8 +196,11 @@ async def upload_cover(
         url = blob.public_url
         
         # Update user profile
-        await FirebaseService.update_user(user_id, {"cover_url": url})
+        updated_user = await FirebaseService.update_user(user_id, {"cover_url": url})
+        
+        # Sync to Algolia
+        background_tasks.add_task(algolia_service.sync_user_profile, user_id, updated_user)
         
         return {"url": url}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")

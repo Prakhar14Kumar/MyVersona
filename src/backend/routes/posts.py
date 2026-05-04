@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Header, Query, Depends
+from fastapi import APIRouter, HTTPException, Header, Query, Depends, BackgroundTasks
 from typing import Optional, List, Literal
 import logging
 
@@ -14,6 +14,7 @@ from src.backend.models.post import (
 from src.backend.services.firebase_service import FirebaseService
 from src.backend.services.auth_service import AuthService
 from src.backend.services.ai_service import ai_service
+from src.backend.services.algolia_service import algolia_service
 
 from src.backend.websocket.notification_handler import notification_handler
 
@@ -31,6 +32,7 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 @router.post("/", response_model=Post)
 async def create_post(
     post_data: PostCreate,
+    background_tasks: BackgroundTasks,
     user_id: str = Depends(auth_get_current_user_id)
 ):
     """
@@ -73,6 +75,9 @@ async def create_post(
         
         # Create post with transaction
         post = await FirebaseService.create_post(post_doc)
+        
+        # Sync to Algolia
+        background_tasks.add_task(algolia_service.sync_post, post['post_id'], post)
         
         logger.info(f"Post created successfully: {post['post_id']}")
         return post
@@ -315,6 +320,7 @@ async def get_comments(
 async def update_post(
     post_id: str,
     updates: PostUpdate,
+    background_tasks: BackgroundTasks,
     user_id: str = Depends(auth_get_current_user_id)
 ):
     """Update a post (content and hashtags only)"""
@@ -339,6 +345,9 @@ async def update_post(
         
         updated_post = await FirebaseService.update_post(post_id, update_data)
         
+        # Sync to Algolia
+        background_tasks.add_task(algolia_service.sync_post, post_id, updated_post)
+        
         logger.info(f"Post updated successfully: {post_id}")
         return updated_post
     
@@ -354,6 +363,7 @@ async def update_post(
 @router.delete("/{post_id}")
 async def delete_post(
     post_id: str,
+    background_tasks: BackgroundTasks,
     user_id: str = Depends(auth_get_current_user_id)
 ):
     """Delete a post (owner only)"""
@@ -367,6 +377,10 @@ async def delete_post(
             )
         
         logger.info(f"Post deleted successfully: {post_id}")
+        
+        # Delete from Algolia
+        background_tasks.add_task(algolia_service.delete_post, post_id)
+        
         return {"success": True, "message": "Post deleted successfully"}
     
     except HTTPException:

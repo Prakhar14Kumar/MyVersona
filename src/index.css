@@ -4,5 +4,28 @@
 @import './styles/globals.css';
 
 @layer base {
-  html, body, #root { min-height: 100vh; height: 100%; margin: 0; }
+  html, body, #root { 
+    height: 100%; 
+    margin: 0; 
+    padding: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgba(120,120,120,0.4);
+    border-radius: 20px;
+  }
 }
